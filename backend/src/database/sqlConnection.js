@@ -6,7 +6,7 @@ async function connect() {
     port: 41819,
     user: "root",
     password: "GfvfEUHFTOzUGbimZbkDaersFVsWommf",
-    database: "railway"
+    database: "Cafeteria"
   });
 }
 
