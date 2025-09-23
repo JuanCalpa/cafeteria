@@ -18,7 +18,7 @@ app.use(cors({
   credentials: true 
 }));
 app.use(express.json());
-app.use('/api', productosRouter);
+app.use('/productos', productosRouter);
 app.use('/api', loginRouter);
 app.use('/api', usuarioRouter);
 
