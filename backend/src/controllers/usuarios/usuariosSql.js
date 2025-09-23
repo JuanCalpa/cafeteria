@@ -1,92 +1,82 @@
 const connect = require('../../database/sqlConnection');
 
-
 async function crearPedido(id_usuario, productos, estado = 'pendiente') {
-    const conn = await connect();
-    try {
-        const [pedidoResult] = await conn.query(
-            'INSERT INTO pedidos (id_usuario, estado, fecha_pedido) VALUES (?, ?, NOW())',
-            [id_usuario, estado]
-        );
-        const id_pedido = pedidoResult.insertId;
+    const connection = await connect();
+    const [pedidoResult] = await connection.execute(
+        'INSERT INTO Pedidos (id_usuario, estado, fecha_pedido) VALUES (?, ?, NOW())',
+        [id_usuario, estado]
+    );
+    const id_pedido = pedidoResult.insertId;
 
-        for (const prod of productos) {
-            await conn.query(
-                'INSERT INTO detallepedido (id_pedido, id_producto, cantidad, especificaciones) VALUES (?, ?, ?, ?)',
-                [id_pedido, prod.id_producto, prod.cantidad, prod.especificaciones || '']
-            );
-        }
-        return { success: true, id_pedido };
-    } finally {
-        conn.release();
+    for (const prod of productos) {
+        await connection.execute(
+            'INSERT INTO Producto_Pedido (id_pedido, id_producto, cantidad, especificaciones) VALUES (?, ?, ?, ?)',
+            [id_pedido, prod.id_producto, prod.cantidad, prod.especificaciones || '']
+        );
     }
+    await connection.end();
+    return { success: true, id_pedido };
 }
 
 async function consultarPedidos(id_usuario) {
-    const conn = await connect();
-    try {
-        const [pedidos] = await conn.query(
-            `SELECT p.*, d.id_producto, d.cantidad, d.especificaciones
-             FROM pedidos p
-             LEFT JOIN detallepedido d ON p.id_pedido = d.id_pedido
-             WHERE p.id_usuario = ?`,
-            [id_usuario]
-        );
-        return pedidos;
-    } finally {
-        conn.release();
-    }
+    const connection = await connect();
+    const [pedidos] = await connection.execute(
+        `SELECT p.*, d.id_producto, d.cantidad, d.especificaciones
+         FROM Pedidos p
+         LEFT JOIN 
+         Producto_Pedido d ON p.id_pedido = d.id_pedido
+         WHERE p.id_usuario = ?`,
+        [id_usuario]
+    );
+    await connection.end();
+    return pedidos;
 }
-
 
 async function actualizarPedido(id_usuario, id_pedido, productos) {
-    const conn = await connect();
-    try {
-        const [[pedido]] = await conn.query(
-            'SELECT estado FROM pedidos WHERE id_pedido = ? AND id_usuario = ?',
-            [id_pedido, id_usuario]
-        );
-        if (!pedido || pedido.estado !== 'pendiente') return { success: false, message: 'No se puede actualizar' };
-
-        await conn.query('DELETE FROM detallepedido WHERE id_pedido = ?', [id_pedido]);
-
-        for (const prod of productos) {
-            await conn.query(
-                'INSERT INTO detallepedido (id_pedido, id_producto, cantidad, especificaciones) VALUES (?, ?, ?, ?)',
-                [id_pedido, prod.id_producto, prod.cantidad, prod.especificaciones || '']
-            );
-        }
-        return { success: true };
-    } finally {
-        conn.release();
+    const connection = await connect();
+    const [[pedido]] = await connection.execute(
+        'SELECT estado FROM Pedidos WHERE id_pedido = ? AND id_usuario = ?',
+        [id_pedido, id_usuario]
+    );
+    if (!pedido || pedido.estado !== 'pendiente') {
+        await connection.end();
+        return { success: false, message: 'No se puede actualizar' };
     }
+
+    await connection.execute('DELETE FROM Producto_Pedido WHERE id_pedido = ?', [id_pedido]);
+
+    for (const prod of productos) {
+        await connection.execute(
+            'INSERT INTO Producto_Pedido (id_pedido, id_producto, cantidad, especificaciones) VALUES (?, ?, ?, ?)',
+            [id_pedido, prod.id_producto, prod.cantidad, prod.especificaciones || '']
+        );
+    }
+    await connection.end();
+    return { success: true };
 }
 
-
-async function cancelarPedido(id_usuario, id_pedido) {
-    const conn = await connect();
-    try {
-       
-        const [[pedido]] = await conn.query(
-            'SELECT estado FROM pedidos WHERE id_pedido = ? AND id_usuario = ?',
-            [id_pedido, id_usuario]
-        );
-        if (!pedido || pedido.estado !== 'pendiente') return { success: false, message: 'No se puede cancelar' };
-
-        
-        await conn.query(
-            'UPDATE pedidos SET estado = ? WHERE id_pedido = ?',
-            ['cancelado', id_pedido]
-        );
-        return { success: true };
-    } finally {
-        conn.release();
+async function eliminarPedido(id_usuario, id_pedido) {
+    const connection = await connect();
+    const [[pedido]] = await connection.execute(
+        'SELECT estado FROM Pedidos WHERE id_pedido = ? AND id_usuario = ?',
+        [id_pedido, id_usuario]
+    );
+    if (!pedido || pedido.estado !== 'pendiente') {
+        await connection.end();
+        return { success: false, message: 'No se puede eliminar' };
     }
-}
 
+    // Elimina los productos asociados al pedido
+    await connection.execute('DELETE FROM Producto_Pedido WHERE id_pedido = ?', [id_pedido]);
+    // Elimina el pedido
+    await connection.execute('DELETE FROM Pedidos WHERE id_pedido = ?', [id_pedido]);
+
+    await connection.end();
+    return { success: true };
+}
 module.exports = {
     crearPedido,
     consultarPedidos,
     actualizarPedido,
-    cancelarPedido
+    eliminarPedido
 };
