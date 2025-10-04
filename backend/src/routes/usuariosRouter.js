@@ -1,9 +1,18 @@
 const router = require('./baseRouter');
-const productosController = require('../controllers/usuarios/usuariosController');
+const usuariosController = require('../controllers/usuarios/usuariosController');
+const verificarRol = require('./intermedios/verificarRol');
 
-router.post('/crearPedido', productosController.crearPedido);
-router.get('/consultarPedidos', productosController.consultarPedidos);
-router.put('/actualizarPedido', productosController.actualizarPedido);
-router.post('/cancelarPedido', productosController.cancelarPedido);
+
+
+
+// 🟩 Solo usuarios logueados (rol cliente o admin) pueden crear pedidos
+router.post('/crearPedido', verificarRol(['cliente', 'admin']), usuariosController.crearPedido);
+
+// 🟩 Solo admin puede consultar todos los pedidos
+router.get('/consultarPedidos', verificarRol(['admin']), usuariosController.consultarPedidos);
+
+// 🟦 Clientes o admin pueden actualizar o cancelar su pedido
+router.put('/actualizarPedido', verificarRol(['cliente', 'admin']), usuariosController.actualizarPedido);
+router.post('/cancelarPedido', verificarRol(['cliente', 'admin']), usuariosController.cancelarPedido);
 
 module.exports = router;
