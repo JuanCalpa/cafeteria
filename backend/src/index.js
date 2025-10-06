@@ -1,3 +1,4 @@
+// backend/src/index.js
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
@@ -8,29 +9,47 @@ const loginRouter = require('./routes/loginRouter');
 const usuarioRouter = require('./routes/usuariosRouter');
 
 const app = express();
+
+// 🔹 Middleware base
 app.use(express.json());
+
+// 🔹 Configuración de sesión
 app.use(session({
   secret: 'Cafeteria321',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false, maxAge: 600000 } 
+  cookie: { secure: false, maxAge: 600000 }
 }));
+
+// 🔹 CORS
 app.use(cors({
   origin: 'http://localhost:3000',
-  credentials: true 
+  credentials: true
 }));
 
-
+// 🔹 Rutas API
 app.use('/productos', productosRouter);
 app.use('/api', loginRouter);
 app.use('/api', usuarioRouter);
 
-// Rutas para Login del panel amin
-app.use(express.static(path.join(__dirname, '../../panelAdmin/frontend')));
+// 🔹 Servir frontend del panel
+app.use('/panelAdmin', express.static(path.join(__dirname, '../../panelAdmin')));
+
+// 🔹 Ruta principal (login)
 app.get('/', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../../panelAdmin/frontend/index.html'));
+  res.sendFile(path.join(__dirname, '../../panelAdmin/frontend/index.html'));
 });
 
+// 🔹 Servir paneles directamente
+app.get('/panelAdmin/frontend/panel.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../panelAdmin/frontend/panel.html'));
+});
+
+app.get('/panelAdmin/frontend/panelCocina.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../panelAdmin/frontend/panelCocina.html'));
+});
+
+// 🔹 Iniciar servidor
 app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+  console.log('✅ Servidor corriendo en http://localhost:3000');
 });

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Administración - Cafetería</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>☕ Cafetería</h2>
+    <ul>
+      <li class="active" id="btnAdmin">Panel Administración</li>
+      <li id="btnCocina">Panel Cocina</li>
+    </ul>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <h1>📋 Panel de Administración</h1>
+    <table id="tablaPedidos">
+      <thead>
+        <tr>
+          <th>ID Pedido</th>
+          <th>Estado</th>
+          <th>Productos</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Aquí se cargan los pedidos desde la BD -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Pago -->
+  <div id="modalPago" class="modal">
+    <div class="modal-content">
+      <span id="cerrarModal" class="close">&times;</span>
+      <h2>Detalles del Pedido</h2>
+      <div id="detallePedido"></div>
+      <div class="modal-actions">
+        <button id="btnPagar" class="btn btn-pagar">✅ Cambiar a Pagado</button>
+        <button id="btnEliminar" class="btn btn-eliminar" disabled>🗑 Eliminar Pedido</button>
+      </div>
+    </div>
+  </div>
+
+ <!-- Modal Editar Pedido -->
+<div id="modalEditar" class="modal hidden">
+  <div class="modal-content">
+    <h2>Editar Pedido</h2>
+    <form id="formEditar">
+      <input type="hidden" id="editarId">
+      
+      <label for="editarEstado">Estado:</label>
+      <select id="editarEstado" required>
+        <option value="pendiente">Pendiente</option>
+        <option value="en preparacion">En preparación</option>
+        <option value="entregado">Entregado</option>
+      </select>
+
+      <div class="modal-buttons">
+        <button type="submit">Guardar</button>
+        <button type="button" id="cerrarModalEditar">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+  <script src="panel.js"></script>
+</body>
+</html>

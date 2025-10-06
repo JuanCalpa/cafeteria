@@ -14,4 +14,5 @@ router.post('/createProducto', verificarRol(['admin']), productosController.crea
 router.put('/updateProducto/:id_producto', verificarRol(['admin']), productosController.updateProducto);
 router.delete('/deleteProducto/:id_producto', verificarRol(['admin']), productosController.deleteProducto);
 
+
 module.exports = router;

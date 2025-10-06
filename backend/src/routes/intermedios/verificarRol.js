@@ -1,9 +1,4 @@
-// middlewares/verificarRol.js
 
-/**
- * Middleware para restringir el acceso según el rol del usuario.
- * @param {Array} rolesPermitidos - Lista de roles autorizados (ej: ['admin', 'empleado'])
- */
 function verificarRol(rolesPermitidos) {
   return (req, res, next) => {
     if (!req.session || !req.session.usuario) {
@@ -16,7 +11,7 @@ function verificarRol(rolesPermitidos) {
       return res.status(403).json({ mensaje: `Acceso denegado para el rol: ${rolUsuario}` });
     }
 
-    next(); // ✅ Usuario autorizado
+    next(); // Usuario autorizado
   };
 }
 
