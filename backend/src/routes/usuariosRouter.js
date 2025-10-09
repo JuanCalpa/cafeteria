@@ -1,7 +1,7 @@
 const router = require('./baseRouter');
 const usuariosController = require('../controllers/usuarios/usuariosController');
 const verificarRol = require('./intermedios/verificarRol');
-
+const pedidosPanelController = require('../controllers/usuarios/pedidosPanelController');
 
 
 
@@ -20,5 +20,8 @@ router.get('/consultarPedidos', verificarRol(['admin']), usuariosController.cons
 // 🟦 Clientes o admin pueden actualizar o cancelar su pedido
 router.put('/actualizarPedido', verificarRol(['cliente', 'admin']), usuariosController.actualizarPedido);
 router.post('/cancelarPedido', verificarRol(['cliente', 'admin']), usuariosController.cancelarPedido);
+
+// Endpoint para el panel de administración (solo admin o administrador)
+router.get('/pedidosPanel', verificarRol(['admin', 'administrador']), pedidosPanelController.getPedidosPanel);
 
 module.exports = router;

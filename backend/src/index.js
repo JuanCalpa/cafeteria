@@ -27,6 +27,15 @@ app.use(cors({
   credentials: true
 }));
 
+// 🔹 Verificar sesión (debe ir antes de las rutas protegidas)
+app.get('/api/verificarSesion', (req, res) => {
+  if (req.session && req.session.usuario) {
+    res.json({ usuario: req.session.usuario });
+  } else {
+    res.status(401).json({ mensaje: 'No autenticado' });
+  }
+});
+
 // 🔹 Rutas API
 app.use('/productos', productosRouter);
 app.use('/api', loginRouter);

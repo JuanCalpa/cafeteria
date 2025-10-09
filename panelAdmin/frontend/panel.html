@@ -22,7 +22,10 @@
       <thead>
         <tr>
           <th>ID Pedido</th>
+          <th>Usuario</th>
+          <th>Correo</th>
           <th>Estado</th>
+          <th>Fecha</th>
           <th>Productos</th>
           <th>Acciones</th>
         </tr>
@@ -33,43 +36,96 @@
     </table>
   </div>
 
-  <!-- Modal Pago -->
+  <!-- Modal Ver Pedido -->
+  <div id="modalVer" class="modal">
+    <div class="modal-content">
+      <span id="cerrarModalVer" class="close">&times;</span>
+      <h2>Detalles del Pedido</h2>
+      <div id="detallePedidoVer"></div>
+    </div>
+  </div>
+
+  <!-- Modal Editar Pedido -->
+  <div id="modalEditar" class="modal">
+    <div class="modal-content">
+      <span id="cerrarModalEditar" class="close">&times;</span>
+      <h2>Editar Pedido</h2>
+      <form id="formEditarPedido">
+        <input type="hidden" id="editarIdPedido">
+        <label for="editarEstado">Estado:</label>
+        <select id="editarEstado">
+          <option value="pendiente">Pendiente</option>
+          <option value="en preparacion">En preparación</option>
+          <option value="entregado">Entregado</option>
+        </select>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-editar">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Pago/Eliminar Pedido -->
   <div id="modalPago" class="modal">
     <div class="modal-content">
-      <span id="cerrarModal" class="close">&times;</span>
-      <h2>Detalles del Pedido</h2>
-      <div id="detallePedido"></div>
+      <span id="cerrarModalPago" class="close">&times;</span>
+      <h2>Pago y Eliminación de Pedido</h2>
+      <div id="detallePedidoPago"></div>
       <div class="modal-actions">
-        <button id="btnPagar" class="btn btn-pagar">✅ Cambiar a Pagado</button>
-        <button id="btnEliminar" class="btn btn-eliminar" disabled>🗑 Eliminar Pedido</button>
+        <button id="btnCambiarPagado" class="btn btn-pagar">Cambiar a Pagado</button>
+        <button id="btnEliminarPedido" class="btn btn-eliminar">Eliminar Pedido</button>
       </div>
     </div>
   </div>
 
- <!-- Modal Editar Pedido -->
-<div id="modalEditar" class="modal hidden">
-  <div class="modal-content">
-    <h2>Editar Pedido</h2>
-    <form id="formEditar">
-      <input type="hidden" id="editarId">
-      
-      <label for="editarEstado">Estado:</label>
-      <select id="editarEstado" required>
-        <option value="pendiente">Pendiente</option>
-        <option value="en preparacion">En preparación</option>
-        <option value="entregado">Entregado</option>
-      </select>
+  <script src="/panelAdmin/js/panel.js"></script>
+  <script>
+  // Obtener y mostrar pedidos en la tabla
+  async function cargarPedidos() {
+    const tbody = document.querySelector('#tablaPedidos tbody');
+    tbody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
+    try {
+      const res = await fetch('/api/pedidosPanel', { credentials: 'include' });
+      const pedidos = await res.json();
+      tbody.innerHTML = '';
+      pedidos.forEach(pedido => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${pedido.id_pedido}</td>
+            <td>${pedido.usuario}</td>
+            <td>${pedido.correo}</td>
+            <td>${pedido.estado}</td>
+            <td>${new Date(pedido.fecha_pedido).toLocaleString()}</td>
+            <td>${pedido.productos || ''}</td>
+            <td>
+              <button class="btn btn-ver" onclick="verPedido('${pedido.id_pedido}')">Ver</button>
+              <button class="btn btn-editar" onclick="editarPedido('${pedido.id_pedido}')">Editar</button>
+              <button class="btn btn-pago" onclick="pagoPedido('${pedido.id_pedido}')">Pago</button>
+            </td>
+          </tr>
+        `;
+      });
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="7">Error al cargar pedidos</td></tr>';
+    }
+  }
 
-      <div class="modal-buttons">
-        <button type="submit">Guardar</button>
-        <button type="button" id="cerrarModalEditar">Cancelar</button>
-      </div>
-    </form>
-  </div>
-</div>
+  // Acciones (puedes implementar la lógica en panel.js)
+  function verPedido(id) {
+    // Mostrar modal con detalles
+    // ...implementación en panel.js...
+  }
+  function editarPedido(id) {
+    // Mostrar modal de edición
+    // ...implementación en panel.js...
+  }
+  function pagoPedido(id) {
+    // Mostrar modal de pago/eliminación
+    // ...implementación en panel.js...
+  }
 
-
-
-  <script src="panel.js"></script>
+  // Cargar pedidos al iniciar
+  window.addEventListener('DOMContentLoaded', cargarPedidos);
+</script>
 </body>
 </html>

@@ -76,8 +76,8 @@ tbody tr:nth-child(even) {
   background: #f1e2d3;
 }
 
-/* Botones de acciones */
-button {
+/* Botones de acciones generales, pero NO los de clase .btn */
+button:not(.btn) {
   padding: 6px 12px;
   border: none;
   border-radius: 6px;
@@ -85,23 +85,43 @@ button {
   font-weight: bold;
 }
 
-.btnPago {
-  background: #a1887f;
-  color: white;
-  margin-right: 5px;
+/* Botones adicionales y de acciones */
+.btn {
+  padding: 6px 14px !important;
+  margin: 0 2px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: background 0.2s, color 0.2s !important;
+  font-weight: bold !important;
 }
 
-.btnPago:hover {
-  background: #8d6e63;
+.btn-ver {
+  background: #3498db !important;
+  color: #fff !important;
 }
 
-.btnEditar {
-  background: #d7ccc8;
-  color: #3e2723;
+.btn-ver:hover {
+  background: #217dbb !important;
 }
 
-.btnEditar:hover {
-  background: #bcaaa4;
+.btn-editar {
+  background: #f1c40f !important;
+  color: #222 !important;
+}
+
+.btn-editar:hover {
+  background: #d4ac0d !important;
+}
+
+.btn-eliminar {
+  background: #e74c3c !important;
+  color: #fff !important;
+}
+
+.btn-eliminar:hover {
+  background: #c0392b !important;
 }
 
 /* Modal */
@@ -171,6 +191,24 @@ button {
 }
 /* Modal Editar */
 #modalEditar {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+#modalEditar .modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 400px;
+  text-align: center;
+
   display: none;
   position: fixed;
   top: 0;
