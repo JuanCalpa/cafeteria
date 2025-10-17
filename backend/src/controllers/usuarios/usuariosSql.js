@@ -32,6 +32,13 @@ async function consultarPedidos(id_usuario) {
     return pedidos;
 }
 
+async function actualizarPedidoEstado(id_pedido, estado) {
+    const connection = await connect();
+    await connection.execute('UPDATE Pedidos SET estado = ? WHERE id_pedido = ?', [estado, id_pedido]);
+    await connection.end();
+    return { success: true, message: 'Pedido actualizado correctamente' };
+}
+
 async function actualizarPedido(id_usuario, id_pedido, productos) {
     const connection = await connect();
     const [[pedido]] = await connection.execute(
@@ -53,6 +60,21 @@ async function actualizarPedido(id_usuario, id_pedido, productos) {
     }
     await connection.end();
     return { success: true };
+}
+
+async function eliminarPedidoAdmin(id_pedido) {
+    const connection = await connect();
+    // Elimina las notificaciones asociadas al pedido
+    await connection.execute('DELETE FROM Notificaciones WHERE id_pedido = ?', [id_pedido]);
+    // Elimina los pagos asociados al pedido
+    await connection.execute('DELETE FROM Pagos WHERE id_pedido = ?', [id_pedido]);
+    // Elimina los productos asociados al pedido
+    await connection.execute('DELETE FROM Producto_Pedido WHERE id_pedido = ?', [id_pedido]);
+    // Elimina el pedido
+    await connection.execute('DELETE FROM Pedidos WHERE id_pedido = ?', [id_pedido]);
+
+    await connection.end();
+    return { success: true, message: 'Pedido eliminado correctamente' };
 }
 
 async function eliminarPedido(id_usuario, id_pedido) {
@@ -78,5 +100,7 @@ module.exports = {
     crearPedido,
     consultarPedidos,
     actualizarPedido,
-    eliminarPedido
+    actualizarPedidoEstado,
+    eliminarPedido,
+    eliminarPedidoAdmin
 };

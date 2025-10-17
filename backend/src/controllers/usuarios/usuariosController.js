@@ -28,11 +28,11 @@ async function consultarPedidos(req, res) {
 }
 
 async function actualizarPedido(req, res) {
-    const { id_usuario, id_pedido, productos } = req.body;
-    console.log('Actualizar pedido:', { id_usuario, id_pedido, productos });
+    const { id_pedido, estado } = req.body;
+    console.log('Actualizar pedido:', { id_pedido, estado });
 
     try {
-        const result = await pedidosSql.actualizarPedido(id_usuario, id_pedido, productos);
+        const result = await pedidosSql.actualizarPedidoEstado(id_pedido, estado);
         res.status(200).json(result);
     } catch (error) {
         console.error('Error al actualizar pedido:', error);
@@ -41,11 +41,11 @@ async function actualizarPedido(req, res) {
 }
 
 async function cancelarPedido(req, res) {
-    const { id_usuario, id_pedido } = req.body;
-    console.log('Cancelar pedido:', { id_usuario, id_pedido });
+    const { id_pedido } = req.body;
+    console.log('Cancelar pedido:', { id_pedido });
 
     try {
-        const result = await pedidosSql.eliminarPedido(id_usuario, id_pedido);
+        const result = await pedidosSql.eliminarPedidoAdmin(id_pedido);
         res.status(200).json(result);
     } catch (error) {
         console.error('Error al cancelar pedido:', error);

@@ -1,221 +1,202 @@
-document.addEventListener("DOMContentLoaded", async () => {
+const modales = {
+  ver: document.getElementById("modalVer"),
+  editar: document.getElementById("modalEditar"),
+  pago: document.getElementById("modalPago"),
+  crear: document.getElementById("modalCrear")
+};
+
+// =================== CERRAR MODALES ===================
+document.querySelectorAll(".close").forEach(btn => {
+  btn.addEventListener("click", () => {
+    Object.values(modales).forEach(m => (m.style.display = "none"));
+  });
+});
+
+window.addEventListener("click", e => {
+  Object.values(modales).forEach(m => {
+    if (e.target === m) m.style.display = "none";
+  });
+});
+
+// =================== CARGAR PEDIDOS ===================
+async function cargarPedidos() {
+  const tbody = document.querySelector("#tablaPedidos tbody");
+  tbody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
+
   try {
-    const res = await fetch("http://localhost:3000/api/verificarSesion", {
-      credentials: "include", // 🔑 Asegura que se envíen cookies de sesión
+    const res = await fetch("http://localhost:3000/api/pedidosPanel", { credentials: "include" });
+    if (!res.ok) throw new Error("No se pudo obtener los pedidos");
+
+    const pedidos = await res.json();
+    tbody.innerHTML = "";
+
+    if (!pedidos.length) {
+      tbody.innerHTML = `<tr><td colspan="7">No hay pedidos registrados</td></tr>`;
+      return;
+    }
+
+    pedidos.forEach(p => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.id_pedido}</td>
+          <td>${p.usuario}</td>
+          <td>${p.correo}</td>
+          <td>${p.estado}</td>
+          <td>${new Date(p.fecha_pedido).toLocaleString()}</td>
+          <td>
+            <button class="btn btn-ver" onclick="verPedido(${p.id_pedido})">Ver</button>
+            <button class="btn btn-editar" onclick="editarPedido(${p.id_pedido})">Editar</button>
+            <button class="btn btn-pagar" onclick="pagoPedido(${p.id_pedido})">Pago</button>
+          </td>
+        </tr>`;
+    });
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="7">Error al cargar pedidos</td></tr>';
+  }
+}
+
+async function verPedido(id) {
+  try {
+    const res = await fetch(`http://localhost:3000/api/pedidosPanel/${id}`);
+    if (res.status === 404) {
+      alert("⚠️ Pedido no encontrado en la base de datos.");
+      return;
+    }
+    if (!res.ok) throw new Error("Error al obtener el pedido");
+
+    const pedido = await res.json();
+
+    // Validar productos antes de mostrar
+    const productos = Array.isArray(pedido.productos) ? pedido.productos : [];
+
+    const detalle = document.getElementById("detallePedidoVer");
+    detalle.innerHTML = `
+      <p><b>ID Pedido:</b> ${pedido.id ?? "N/A"}</p>
+      <p><b>Usuario:</b> ${pedido.usuario ?? "Desconocido"}</p>
+      <p><b>Correo:</b> ${pedido.correo ?? "—"}</p>
+      <p><b>Estado:</b> ${pedido.estado ?? "—"}</p>
+      <p><b>Fecha:</b> ${pedido.fecha_pedido ? new Date(pedido.fecha_pedido).toLocaleString() : "—"}</p>
+      <p><b>Total:</b> $${pedido.total ? pedido.total.toLocaleString() : "0"}</p>
+      <h3>🧾 Productos</h3>
+      ${
+  productos.length > 0
+    ? `<ul>${productos.map(p => {
+        const nombre = p.nombre || "Producto sin nombre";
+        const cantidad = p.cantidad || 0;
+        const subtotal = p.subtotal ? Number(p.subtotal).toLocaleString("es-CO") : "0";
+        return `<li>${nombre} x${cantidad} — $${subtotal}</li>`;
+      }).join("")}</ul>`
+    : "<p>❌ No hay productos asociados a este pedido.</p>"
+}
+    `;
+    
+
+    modalVer.style.display = "flex";
+  } catch (error) {
+    console.error("Error en verPedido:", error);
+    alert("❌ Ocurrió un error al obtener el pedido.");
+  }
+}
+
+
+// =================== EDITAR PEDIDO ===================
+function editarPedido(id) {
+  document.getElementById("editarIdPedido").value = id;
+  modales.editar.style.display = "flex";
+}
+
+document.getElementById("formEditarPedido").addEventListener("submit", async e => {
+  e.preventDefault();
+  const id = document.getElementById("editarIdPedido").value;
+  const estado = document.getElementById("editarEstado").value;
+
+  try {
+    const res = await fetch("http://localhost:3000/api/actualizarPedido", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ id_pedido: id, estado })
     });
 
-    const data = await res.json();
+    if (!res.ok) throw new Error("Error al actualizar pedido");
 
-    if (!res.ok || !data.usuario) {
-      alert("Debes iniciar sesión para acceder al panel");
-      window.location.href = "/panelAdmin/frontend/index.html";
-      return;
-    }
-
-    const usuario = data.usuario;
-    console.log("Usuario autenticado:", usuario);
-
-    // 🔒 Control de acceso según panel
-    const esPanelAdmin = window.location.pathname.includes("panel.html");
-    const esPanelCocina = window.location.pathname.includes("panelCocina.html");
-
-    if (esPanelAdmin && usuario.rol !== "admin" && usuario.rol !== "administrador") {
-      alert("Acceso denegado. Este panel es solo para administradores.");
-      window.location.href = "/panelAdmin/frontend/index.html";
-      return;
-    }
-
-    if (esPanelCocina && usuario.rol !== "cocina" && usuario.rol !== "admin") {
-      alert("Acceso denegado. Este panel es solo para personal de cocina o administradores.");
-      window.location.href = "/panelAdmin/frontend/index.html";
-      return;
-    }
-
-    // ✅ Aquí puedes continuar cargando el contenido del panel
-    console.log("Acceso autorizado al panel");
-
-    // Cargar pedidos en el panel admin
-    if (esPanelAdmin) {
-      cargarPedidosPanel();
-    }
-
-    async function cargarPedidosPanel() {
-      const tabla = document.getElementById('tablaPedidos');
-      const tbody = tabla ? tabla.querySelector('tbody') : null;
-      if (!tbody) return;
-
-      tbody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
-      try {
-        const res = await fetch('/api/pedidosPanel', { credentials: 'include' });
-        if (!res.ok) {
-          const error = await res.json();
-          console.error('Error al obtener pedidos:', error);
-          tbody.innerHTML = `<tr><td colspan="7">Error: ${error.error || 'No autorizado'}</td></tr>`;
-          return;
-        }
-        const pedidos = await res.json();
-        tbody.innerHTML = '';
-        pedidos.forEach(pedido => {
-          tbody.innerHTML += `
-            <tr>
-              <td>${pedido.id_pedido}</td>
-              <td>${pedido.usuario}</td>
-              <td>${pedido.correo}</td>
-              <td>${pedido.estado}</td>
-              <td>${new Date(pedido.fecha_pedido).toLocaleString()}</td>
-              <td>${pedido.productos || ''}</td>
-              <td>
-                <button onclick="verPedido('${pedido.id_pedido}')" class="btn btn-ver">Ver</button>
-                <button onclick="editarPedido('${pedido.id_pedido}')" class="btn btn-editar">Editar</button>
-                <button onclick="pagoPedido('${pedido.id_pedido}')" class="btn btn-pago">Pago</button>
-              </td>
-            </tr>
-          `;
-        });
-      } catch (err) {
-        console.error('Error de conexión:', err);
-        if (tbody) tbody.innerHTML = '<tr><td colspan="7">Error de conexión</td></tr>';
-      }
-    }
-
-    window.verPedido = async function(id_pedido) {
-      const modal = document.getElementById('modalVer');
-      const detalle = document.getElementById('detallePedidoVer');
-      detalle.innerHTML = 'Cargando...';
-      modal.style.display = 'flex';
-
-      try {
-        const res = await fetch(`/api/pedidosPanel?id_pedido=${id_pedido}`, { credentials: 'include' });
-        const pedido = await res.json();
-        detalle.innerHTML = `
-          <strong>ID:</strong> ${pedido.id_pedido}<br>
-          <strong>Usuario:</strong> ${pedido.usuario}<br>
-          <strong>Correo:</strong> ${pedido.correo}<br>
-          <strong>Estado:</strong> ${pedido.estado}<br>
-          <strong>Fecha:</strong> ${new Date(pedido.fecha_pedido).toLocaleString()}<br>
-          <strong>Productos:</strong> ${pedido.productos || ''}<br>
-        `;
-      } catch (err) {
-        detalle.innerHTML = 'Error al cargar detalles';
-      }
-    };
-
-    document.getElementById('cerrarModalVer').onclick = () => {
-      document.getElementById('modalVer').style.display = 'none';
-    };
-
-    window.editarPedido = async function(id_pedido) {
-      const modal = document.getElementById('modalEditar');
-      modal.style.display = 'flex';
-      document.getElementById('editarIdPedido').value = id_pedido;
-
-      // Opcional: cargar estado actual del pedido
-      try {
-        const res = await fetch(`/api/pedidosPanel?id_pedido=${id_pedido}`, { credentials: 'include' });
-        const pedido = await res.json();
-        document.getElementById('editarEstado').value = pedido.estado;
-      } catch {}
-    };
-
-    document.getElementById('cerrarModalEditar').onclick = () => {
-      document.getElementById('modalEditar').style.display = 'none';
-    };
-
-    document.getElementById('formEditarPedido').onsubmit = async function(e) {
-      e.preventDefault();
-      const id_pedido = document.getElementById('editarIdPedido').value;
-      const estado = document.getElementById('editarEstado').value;
-      if (!confirm('¿Seguro que deseas guardar los cambios?')) return;
-      try {
-        const res = await fetch('/api/actualizarPedido', {
-          method: 'PUT',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id_pedido, estado })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert('Pedido actualizado correctamente');
-          document.getElementById('modalEditar').style.display = 'none';
-          cargarPedidosPanel();
-        } else {
-          alert(data.message || 'No se pudo actualizar el pedido');
-        }
-      } catch (err) {
-        alert('Error al actualizar el pedido');
-      }
-    };
-
-    window.pagoPedido = async function(id_pedido) {
-      const modal = document.getElementById('modalPago');
-      const detalle = document.getElementById('detallePedidoPago');
-      modal.style.display = 'flex';
-      detalle.innerHTML = 'Cargando...';
-
-      try {
-        const res = await fetch(`/api/pedidosPanel?id_pedido=${id_pedido}`, { credentials: 'include' });
-        const pedido = await res.json();
-        // Si el backend no devuelve el total, puedes calcularlo aquí si tienes los precios
-        detalle.innerHTML = `
-          <strong>ID:</strong> ${pedido.id_pedido}<br>
-          <strong>Usuario:</strong> ${pedido.usuario}<br>
-          <strong>Estado:</strong> ${pedido.estado}<br>
-          <strong>Valor Total:</strong> $${pedido.total || 'No disponible'}<br>
-        `;
-        document.getElementById('btnCambiarPagado').onclick = async function() {
-          if (!confirm('¿Seguro que deseas cambiar el estado a pagado?')) return;
-          try {
-            const res = await fetch('/api/actualizarPedido', {
-              method: 'PUT',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id_pedido, estado: 'pagado' })
-            });
-            const data = await res.json();
-            if (data.success) {
-              alert('Estado cambiado a pagado');
-              modal.style.display = 'none';
-              cargarPedidosPanel();
-            } else {
-              alert(data.message || 'No se pudo cambiar el estado');
-            }
-          } catch (err) {
-            alert('Error al cambiar estado');
-          }
-        };
-        document.getElementById('btnEliminarPedido').onclick = async function() {
-          if (!confirm('¿Seguro que deseas eliminar este pedido?')) return;
-          try {
-            const res = await fetch('/api/cancelarPedido', {
-              method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id_pedido })
-            });
-            const data = await res.json();
-            if (data.success) {
-              alert('Pedido eliminado correctamente');
-              modal.style.display = 'none';
-              cargarPedidosPanel();
-            } else {
-              alert(data.message || 'No se pudo eliminar el pedido');
-            }
-          } catch (err) {
-            alert('Error al eliminar el pedido');
-          }
-        };
-      } catch (err) {
-        detalle.innerHTML = 'Error al cargar detalles';
-      }
-    };
-
-    document.getElementById('cerrarModalPago').onclick = () => {
-      document.getElementById('modalPago').style.display = 'none';
-    };
-
+    modales.editar.style.display = "none";
+    cargarPedidos();
   } catch (err) {
-    console.error("Error verificando sesión:", err);
-    alert("Error al verificar sesión. Inicia sesión nuevamente.");
-    window.location.href = "/panelAdmin/frontend/index.html";
+    console.error("Error al actualizar:", err);
   }
 });
+
+// =================== PAGO PEDIDO ===================
+function pagoPedido(id) {
+  document.getElementById("detallePedidoPago").innerHTML = `<p>Gestión del pedido #${id}</p>`;
+  modales.pago.style.display = "flex";
+
+  document.getElementById("btnCambiarPagado").onclick = async () => {
+    try {
+      await fetch("http://localhost:3000/api/actualizarPedido", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id_pedido: id, estado: "entregado" })
+      });
+      modales.pago.style.display = "none";
+      cargarPedidos();
+    } catch (err) {
+      console.error("Error al cambiar estado:", err);
+    }
+  };
+
+  document.getElementById("btnEliminarPedido").onclick = async () => {
+    try {
+      await fetch("http://localhost:3000/api/cancelarPedido", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id_pedido: id })
+      });
+      modales.pago.style.display = "none";
+      cargarPedidos();
+    } catch (err) {
+      console.error("Error al eliminar pedido:", err);
+    }
+  };
+}
+
+// =================== CREAR PEDIDO MANUAL ===================
+document.getElementById("btnAbrirCrear").addEventListener("click", () => {
+  modales.crear.style.display = "flex";
+});
+
+document.getElementById("formCrearPedido").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  // Ejemplo simple para crear un pedido manual
+  const id_usuario = 1; // Puedes cambiarlo por un select más adelante
+  const id_producto = 1;
+  const cantidad = 1;
+
+  try {
+    const res = await fetch("http://localhost:3000/api/crearPedidoManual", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        id_usuario,
+        productos: [{ id_producto, cantidad }]
+      })
+    });
+
+    if (!res.ok) throw new Error("Error al crear pedido");
+
+    modales.crear.style.display = "none";
+    e.target.reset();
+    cargarPedidos();
+  } catch (err) {
+    console.error("Error al crear pedido manual:", err);
+  }
+});
+
+// =================== INICIO ===================
+window.addEventListener("DOMContentLoaded", cargarPedidos);

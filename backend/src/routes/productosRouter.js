@@ -5,14 +5,14 @@ const verificarRol = require('./intermedios/verificarRol');
 
 ;
 
-// 🟦 Todos pueden ver productos
+//  Todos pueden ver productos
 router.get('/productos', productosController.getProductos);
 router.get('/productoById', productosController.getProductoById);
 
-// 🟩 Solo los administradores pueden crear, actualizar o eliminar
-router.post('/createProducto', verificarRol(['admin']), productosController.createProducto);
-router.put('/updateProducto/:id_producto', verificarRol(['admin']), productosController.updateProducto);
-router.delete('/deleteProducto/:id_producto', verificarRol(['admin']), productosController.deleteProducto);
+// Solo los administradores pueden crear, actualizar o eliminar
+router.post('/createProducto', verificarRol(['admin', 'administrador']), productosController.createProducto);
+router.put('/updateProducto/:id_producto', verificarRol(['admin', 'administrador']), productosController.updateProducto);
+router.delete('/deleteProducto/:id_producto', verificarRol(['admin', 'administrador']), productosController.deleteProducto);
 
 
 module.exports = router;

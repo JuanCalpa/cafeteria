@@ -1,18 +1,20 @@
-const router = require('./baseRouter');
+const router = require('express').Router();
 const pedidosController = require('../controllers/pedidos/pedidosController');
 const verificarRol = require('./intermedios/verificarRol');
 
+// obtener todos los pedidos
+router.get('/pedidosPanel', verificarRol(['administrador']), pedidosController.getAllPedidos);
 
-// 🟦 Todos pueden ver productos
-router.get('/productos', productosController.getProductos);
-router.get('/productoById', productosController.getProductoById);
+// Obtener pedido por ID
+router.get('/pedidosPanel/:id_pedido', verificarRol(['administrador']), pedidosController.getPedidoById);
 
-// 🟩 Solo los administradores pueden crear, actualizar o eliminar
-router.post('/createProducto', verificarRol(['admin']), productosController.createProducto);
-router.put('/updateProducto/:id_producto', verificarRol(['admin']), productosController.updateProducto);
-router.delete('/deleteProducto/:id_producto', verificarRol(['admin']), productosController.deleteProducto);
+// Actualizar pedido
+router.put('/actualizarPedido', verificarRol(['administrador']), pedidosController.actualizarPedido);
 
-// Nueva ruta para obtener todos los pedidos
-router.get('/all', pedidosController.getAllPedidos);
+// Eliminar pedido
+router.post('/cancelarPedido', verificarRol(['administrador']), pedidosController.cancelarPedido);
+
+// Crear pedido manual
+router.post('/crearPedidoManual', verificarRol(['administrador']), pedidosController.crearPedidoManual);
 
 module.exports = router;

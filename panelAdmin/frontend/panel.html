@@ -11,44 +11,49 @@
     <h2>☕ Cafetería</h2>
     <ul>
       <li class="active" id="btnAdmin">Panel Administración</li>
-      <li id="btnCocina">Panel Cocina</li>
     </ul>
   </div>
 
   <!-- Contenido principal -->
   <div class="main-content">
-    <h1>📋 Panel de Administración</h1>
-    <table id="tablaPedidos">
-      <thead>
-        <tr>
-          <th>ID Pedido</th>
-          <th>Usuario</th>
-          <th>Correo</th>
-          <th>Estado</th>
-          <th>Fecha</th>
-          <th>Productos</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Aquí se cargan los pedidos desde la BD -->
-      </tbody>
-    </table>
+    <div class="panel-header">
+      <h1>📋 Panel de Administración</h1>
+      <button class="btn btn-nuevo" id="btnAbrirCrear">➕ Crear Pedido Manual</button>
+    </div>
+
+    <div class="tabla-container">
+      <table id="tablaPedidos">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Correo</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Modal Ver Pedido -->
+  <!-- === MODALES === -->
+
+  <!-- Modal Ver -->
   <div id="modalVer" class="modal">
-    <div class="modal-content">
-      <span id="cerrarModalVer" class="close">&times;</span>
+    <div class="modal-box">
+      <span class="close" id="cerrarModalVer">&times;</span>
       <h2>Detalles del Pedido</h2>
       <div id="detallePedidoVer"></div>
     </div>
   </div>
 
-  <!-- Modal Editar Pedido -->
+  <!-- Modal Editar -->
   <div id="modalEditar" class="modal">
-    <div class="modal-content">
-      <span id="cerrarModalEditar" class="close">&times;</span>
+    <div class="modal-box">
+      <span class="close" id="cerrarModalEditar">&times;</span>
       <h2>Editar Pedido</h2>
       <form id="formEditarPedido">
         <input type="hidden" id="editarIdPedido">
@@ -59,17 +64,17 @@
           <option value="entregado">Entregado</option>
         </select>
         <div class="modal-actions">
-          <button type="submit" class="btn btn-editar">Guardar</button>
+          <button type="submit" class="btn btn-editar">Guardar Cambios</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal Pago/Eliminar Pedido -->
+  <!-- Modal Pago -->
   <div id="modalPago" class="modal">
-    <div class="modal-content">
-      <span id="cerrarModalPago" class="close">&times;</span>
-      <h2>Pago y Eliminación de Pedido</h2>
+    <div class="modal-box">
+      <span class="close" id="cerrarModalPago">&times;</span>
+      <h2>Gestión de Pago</h2>
       <div id="detallePedidoPago"></div>
       <div class="modal-actions">
         <button id="btnCambiarPagado" class="btn btn-pagar">Cambiar a Pagado</button>
@@ -78,54 +83,32 @@
     </div>
   </div>
 
+  <!-- Modal Crear Pedido Manual -->
+  <div id="modalCrear" class="modal">
+    <div class="modal-box">
+      <span class="close" id="cerrarModalCrear">&times;</span>
+      <h2>Crear Pedido Manual</h2>
+      <form id="formCrearPedido">
+        <label for="id_usuario">ID Usuario:</label>
+        <input type="number" id="id_usuario" placeholder="Ej: 1" required>
+
+        <label for="id_producto">ID Producto:</label>
+        <input type="number" id="id_producto" placeholder="Ej: 2" required>
+
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" id="cantidad" min="1" value="1" required>
+
+        <p style="font-size: 13px; color:#5d4037;">
+          💡 Tip: asegúrate de que el <b>ID de usuario</b> y el <b>ID del producto</b> existan en la base de datos.
+        </p>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-nuevo">Registrar Pedido</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="/panelAdmin/js/panel.js"></script>
-  <script>
-  // Obtener y mostrar pedidos en la tabla
-  async function cargarPedidos() {
-    const tbody = document.querySelector('#tablaPedidos tbody');
-    tbody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
-    try {
-      const res = await fetch('/api/pedidosPanel', { credentials: 'include' });
-      const pedidos = await res.json();
-      tbody.innerHTML = '';
-      pedidos.forEach(pedido => {
-        tbody.innerHTML += `
-          <tr>
-            <td>${pedido.id_pedido}</td>
-            <td>${pedido.usuario}</td>
-            <td>${pedido.correo}</td>
-            <td>${pedido.estado}</td>
-            <td>${new Date(pedido.fecha_pedido).toLocaleString()}</td>
-            <td>${pedido.productos || ''}</td>
-            <td>
-              <button class="btn btn-ver" onclick="verPedido('${pedido.id_pedido}')">Ver</button>
-              <button class="btn btn-editar" onclick="editarPedido('${pedido.id_pedido}')">Editar</button>
-              <button class="btn btn-pago" onclick="pagoPedido('${pedido.id_pedido}')">Pago</button>
-            </td>
-          </tr>
-        `;
-      });
-    } catch (err) {
-      tbody.innerHTML = '<tr><td colspan="7">Error al cargar pedidos</td></tr>';
-    }
-  }
-
-  // Acciones (puedes implementar la lógica en panel.js)
-  function verPedido(id) {
-    // Mostrar modal con detalles
-    // ...implementación en panel.js...
-  }
-  function editarPedido(id) {
-    // Mostrar modal de edición
-    // ...implementación en panel.js...
-  }
-  function pagoPedido(id) {
-    // Mostrar modal de pago/eliminación
-    // ...implementación en panel.js...
-  }
-
-  // Cargar pedidos al iniciar
-  window.addEventListener('DOMContentLoaded', cargarPedidos);
-</script>
 </body>
 </html>
