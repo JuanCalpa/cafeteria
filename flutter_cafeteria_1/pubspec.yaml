@@ -1,0 +1,29 @@
+name: flutter_cafeteria_1
+description: Aplicación de cafetería para la Universidad Mariana
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.5+1
+  image_picker: ^1.0.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/BancolombiaQr.jpeg
+    - assets/Nequi_Qr.jpeg
+    - assets/DAVIplataIma.jpeg
+    - assets/DAVIplataIma.jpeg
