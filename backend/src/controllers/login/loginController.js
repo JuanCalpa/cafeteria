@@ -40,16 +40,16 @@ async function login(req, res) {
     console.log('Sesión activa:', req.session.usuario);
 
     let destino = null;
-switch (usuario.rol) {
-  case 'administrador':
-    destino = '/panelAdmin/frontend/panel.html';
-    break;
-  case 'cocina':
-    destino = '/panelAdmin/frontend/panelCocina.html';
-    break;
-  default:
-    return res.status(403).json({ mensaje: 'Acceso denegado: rol no autorizado.' });
-}
+    switch (usuario.rol) {
+      case 'administrador':
+        destino = '/panelAdmin/frontend/panel.html';
+        break;
+      case 'cocina':
+        destino = '/panelAdmin/frontend/panelCocina.html';
+        break;
+      default:
+        return res.status(403).json({ mensaje: 'Acceso denegado: rol no autorizado.' });
+    }
 
 
     return res.status(200).json({

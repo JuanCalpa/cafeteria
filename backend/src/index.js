@@ -8,6 +8,7 @@ const productosRouter = require('./routes/productosRouter');
 const pedidosRouter = require('./routes/pedidosRouter'); 
 const loginRouter = require('./routes/loginRouter');
 const usuarioRouter = require('./routes/usuariosRouter');
+const comprobanteRouter = require('./routes/comprobanteRouter');
 
 const app = express();
 
@@ -44,7 +45,8 @@ app.get('/api/verificarSesion', (req, res) => {
 app.use('/api', loginRouter);
 app.use('/api', usuarioRouter);
 app.use('/api', pedidosRouter);      
-app.use('/api', productosRouter);    
+app.use('/api', productosRouter);   
+app.use('/api', comprobanteRouter); 
 
 // ==================== FRONTEND ====================
 
@@ -64,6 +66,9 @@ app.get('/panelAdmin/frontend/panel.html', (req, res) => {
 app.get('/panelAdmin/frontend/panelCocina.html', (req, res) => {
   res.sendFile(path.join(__dirname, '../../panelAdmin/frontend/panelCocina.html'));
 });
+
+// servir archivos subidos
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ==================== SERVER ====================
 app.listen(3000, () => {
