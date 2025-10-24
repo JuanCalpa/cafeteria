@@ -5,6 +5,9 @@ const verificarRol = require('./intermedios/verificarRol');
 // obtener todos los pedidos
 router.get('/pedidosPanel', verificarRol(['administrador']), pedidosController.getAllPedidos);
 
+// obtener pedidos para cocina (solo información de Producto_Pedido)
+router.get('/pedidosCocina', verificarRol(['cocina']), pedidosController.getPedidosCocina);
+
 // Obtener pedido por ID
 router.get('/pedidosPanel/:id_pedido', verificarRol(['administrador']), pedidosController.getPedidoById);
 

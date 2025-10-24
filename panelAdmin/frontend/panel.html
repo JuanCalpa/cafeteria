@@ -6,6 +6,24 @@
   <link rel="stylesheet" href="panel.css">
 </head>
 <body>
+  <!-- Verificar sesión al cargar -->
+  <script>
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/verificarSesion", { credentials: "include" });
+        const data = await res.json();
+
+        if (!res.ok || data.usuario.rol !== 'administrador') {
+          alert("Acceso denegado. Solo para administradores.");
+          window.location.href = "/";
+          return;
+        }
+      } catch (err) {
+        console.error("Error al verificar sesión:", err);
+        window.location.href = "/";
+      }
+    });
+  </script>
   <!-- Sidebar -->
   <div class="sidebar">
     <h2>☕ Cafetería</h2>
@@ -17,8 +35,11 @@
   <!-- Contenido principal -->
   <div class="main-content">
     <div class="panel-header">
-      <h1>📋 Panel de Administración</h1>
-      <button class="btn btn-nuevo" id="btnAbrirCrear">➕ Crear Pedido Manual</button>
+    <h1>📋 Panel de Administración</h1>
+      <div>
+        <button class="btn btn-nuevo" id="btnAbrirCrear">➕ Agregar Producto</button>
+        <button class="btn btn-secondary" id="btnLogout" style="margin-left: 10px;">Cerrar Sesión</button>
+      </div>
     </div>
 
     <div class="tabla-container">
@@ -29,7 +50,6 @@
             <th>Usuario</th>
             <th>Correo</th>
             <th>Estado</th>
-            <th>Fecha</th>
             <th>Total</th>
             <th>Acciones</th>
           </tr>
@@ -83,29 +103,96 @@
     </div>
   </div>
 
-  <!-- Modal Crear Pedido Manual -->
+  <!-- Modal Agregar Producto -->
   <div id="modalCrear" class="modal">
     <div class="modal-box">
       <span class="close" id="cerrarModalCrear">&times;</span>
-      <h2>Crear Pedido Manual</h2>
-      <form id="formCrearPedido">
-        <label for="id_usuario">ID Usuario:</label>
-        <input type="number" id="id_usuario" placeholder="Ej: 1" required>
+      <h2>Agregar Producto</h2>
+      <form id="formCrearProducto">
+        <div id="productosContainer">
+          <div class="producto-item">
+            <div style="display: flex; gap: 10px;">
+              <div style="flex: 1;">
+                <label>Categoría:</label>
+                <select class="categoria" required>
+                  <option value="">Selecciona categoría</option>
+                </select>
+              </div>
+              <div style="flex: 1;">
+                <label>Nombre:</label>
+                <input type="text" class="nombre" placeholder="Ej: Café" required>
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <div style="flex: 1;">
+                <label>Descripción:</label>
+                <input type="text" class="descripcion" placeholder="Ej: Café negro">
+              </div>
+              <div style="flex: 1;">
+                <label>Precio:</label>
+                <input type="text" class="precio" placeholder="Ej: $2,500" required>
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <div style="flex: 1;">
+                <label>Disponibilidad:</label>
+                <select class="disponibilidad" required>
+                  <option value="TRUE">Disponible</option>
+                  <option value="FALSE">No disponible</option>
+                </select>
+              </div>
+              <div style="flex: 1;">
+                <button type="button" class="btn btn-eliminar remove-producto">❌ Remover</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <label for="id_producto">ID Producto:</label>
-        <input type="number" id="id_producto" placeholder="Ej: 2" required>
-
-        <label for="cantidad">Cantidad:</label>
-        <input type="number" id="cantidad" min="1" value="1" required>
-
-        <p style="font-size: 13px; color:#5d4037;">
-          💡 Tip: asegúrate de que el <b>ID de usuario</b> y el <b>ID del producto</b> existan en la base de datos.
-        </p>
+        <button type="button" id="btnAgregarOtroProducto" class="btn btn-nuevo">➕ Agregar Otro Producto</button>
 
         <div class="modal-actions">
-          <button type="submit" class="btn btn-nuevo">Registrar Pedido</button>
+          <button type="submit" class="btn btn-nuevo">Agregar Productos</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación para Editar Pedido -->
+  <div id="modalConfirmEdit" class="modal">
+    <div class="modal-box">
+      <span class="close" id="closeConfirmEdit">&times;</span>
+      <h2>⚠️ Confirmar Cambio de Estado</h2>
+      <p id="confirmEditText"></p>
+      <div class="modal-actions">
+        <button id="btnConfirmEditYes" class="btn btn-primary">Sí, Cambiar</button>
+        <button id="btnConfirmEditNo" class="btn btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación para Acciones de Pago -->
+  <div id="modalConfirmPago" class="modal">
+    <div class="modal-box">
+      <span class="close" id="closeConfirmPago">&times;</span>
+      <h2>⚠️ Confirmar Acción</h2>
+      <p id="confirmPagoText"></p>
+      <div class="modal-actions">
+        <button id="btnConfirmPagoYes" class="btn btn-primary">Sí, Proceder</button>
+        <button id="btnConfirmPagoNo" class="btn btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación para Logout -->
+  <div id="modalConfirmLogout" class="modal">
+    <div class="modal-box">
+      <span class="close" id="closeConfirmLogout">&times;</span>
+      <h2>⚠️ Cerrar Sesión</h2>
+      <p>¿Estás seguro de que quieres cerrar sesión?</p>
+      <div class="modal-actions">
+        <button id="btnConfirmLogoutYes" class="btn btn-primary">Sí, Cerrar Sesión</button>
+        <button id="btnConfirmLogoutNo" class="btn btn-secondary">Cancelar</button>
+      </div>
     </div>
   </div>
 

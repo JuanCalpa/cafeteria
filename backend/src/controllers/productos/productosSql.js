@@ -14,19 +14,19 @@ async function getProductoById(id) {
     return rows[0];
 }
 
-const createProducto = async (nombre, descripcion, precio, stock, categoria) => {
-    const query = 'INSERT INTO Productos (nombre, descripcion, precio, stock, categoria) VALUES (?, ?, ?, ?, ?)';
-    const connection = await connect(); 
-    const [result] = await connection.execute(query, [nombre, descripcion, precio, stock, categoria]);
+const createProducto = async (nombre, descripcion, precio, disponibilidad, categoria) => {
+    const query = 'INSERT INTO Productos (nombre, descripcion, precio, disponibilidad, categoria) VALUES (?, ?, ?, ?, ?)';
+    const connection = await connect();
+    const [result] = await connection.execute(query, [nombre, descripcion, precio, disponibilidad, categoria]);
     await connection.end();
     return result;
 }
 
-async function updateProducto(id, nombre, descripcion, precio, stock, categoria) {  
-    const query = 'UPDATE Productos SET nombre = ?, descripcion = ?, precio = ?, stock = ?, categoria = ? WHERE id_producto = ?';
+async function updateProducto(id, nombre, descripcion, precio, disponibilidad, categoria) {
+    const query = 'UPDATE Productos SET nombre = ?, descripcion = ?, precio = ?, disponibilidad = ?, categoria = ? WHERE id_producto = ?';
     const connection = await connect();
-    const [result] = await connection.execute(query, [nombre, descripcion, precio, stock, categoria, id]);
-    await connection.end(); 
+    const [result] = await connection.execute(query, [nombre, descripcion, precio, disponibilidad, categoria, id]);
+    await connection.end();
     return result;
 }
 
@@ -34,7 +34,7 @@ async function deleteProducto(id) {
     try{
         const connection = await connect();
         const [result] = await connection.execute('DELETE FROM Productos WHERE id_producto = ?', [id]);
-        await connection.end(); 
+        await connection.end();
         return result;
     } catch (error) {
         console.error('Error al eliminar el producto:', error);
@@ -42,11 +42,19 @@ async function deleteProducto(id) {
     }
 }
 
+async function getCategorias() {
+    const connection = await connect();
+    const [rows] = await connection.execute('SELECT DISTINCT categoria FROM Productos ORDER BY categoria');
+    await connection.end();
+    return rows.map(r => r.categoria);
+}
 
-module.exports = { 
+
+module.exports = {
     getProductos,
     getProductoById,
     createProducto,
     updateProducto,
-    deleteProducto
- };
+    deleteProducto,
+    getCategorias
+};

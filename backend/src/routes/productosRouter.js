@@ -14,5 +14,8 @@ router.post('/createProducto', verificarRol(['admin', 'administrador']), product
 router.put('/updateProducto/:id_producto', verificarRol(['admin', 'administrador']), productosController.updateProducto);
 router.delete('/deleteProducto/:id_producto', verificarRol(['admin', 'administrador']), productosController.deleteProducto);
 
+// Obtener categorías
+router.get('/categorias', productosController.getCategorias);
+
 
 module.exports = router;

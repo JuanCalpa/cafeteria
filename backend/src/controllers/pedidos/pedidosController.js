@@ -5,7 +5,7 @@ async function getAllPedidos(req, res) {
   try {
     const connection = await connect();
     const [rows] = await connection.execute(`
-      SELECT 
+      SELECT
         p.id_pedido,
         u.nombre AS usuario,
         u.correo,
@@ -161,10 +161,43 @@ async function crearPedidoManual(req, res) {
   }
 }
 
+// Obtener pedidos para cocina (todos los pedidos con productos y especificaciones)
+async function getPedidosCocina(req, res) {
+  try {
+    const connection = await connect();
+    const [rows] = await connection.execute(`
+      SELECT
+        p.id_pedido,
+        u.nombre AS usuario,
+        GROUP_CONCAT(
+          CONCAT(
+            pr.nombre,
+            ' x',
+            pp.cantidad,
+            CASE WHEN pp.especificaciones IS NOT NULL AND pp.especificaciones != '' THEN CONCAT(' (', pp.especificaciones, ')') ELSE '' END
+          )
+          SEPARATOR ', '
+        ) AS productos_especificaciones
+      FROM Producto_Pedido pp
+      JOIN Pedidos p ON pp.id_pedido = p.id_pedido
+      JOIN Productos pr ON pp.id_producto = pr.id_producto
+      JOIN Usuarios u ON p.id_usuario = u.id_usuario
+      GROUP BY p.id_pedido, u.nombre
+      ORDER BY p.fecha_pedido DESC
+    `);
+    await connection.end();
+    res.json(rows);
+  } catch (error) {
+    console.error('Error al obtener pedidos para cocina:', error);
+    res.status(500).json({ error: 'Error al obtener pedidos para cocina' });
+  }
+}
+
 module.exports = {
   getAllPedidos,
   getPedidoById,
   actualizarPedido,
   cancelarPedido,
-  crearPedidoManual
+  crearPedidoManual,
+  getPedidosCocina
 };

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Cocina - Cafetería</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>☕ Cafetería</h2>
+    <ul>
+      <li class="active" id="btnCocina">Panel Cocina</li>
+    </ul>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <div class="panel-header">
+      <h1>🍳 Panel de Cocina</h1>
+      <button class="btn btn-nuevo" id="btnLogout">Cerrar Sesión</button>
+    </div>
+
+    <!-- Tabla de pedidos para cocina -->
+    <div class="tabla-container">
+      <table id="tablaPedidosCocina">
+        <thead>
+          <tr>
+            <th>ID Pedido</th>
+            <th>Usuario</th>
+            <th>Productos y Especificaciones</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/panelAdmin/js/panelCocina.js"></script>
+</body>
+</html>
