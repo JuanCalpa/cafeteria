@@ -288,7 +288,6 @@ document.getElementById("formCrearProducto").addEventListener("submit", async e 
 
     modales.crear.style.display = "none";
     e.target.reset();
-    // Reset container to one item
     document.getElementById("productosContainer").innerHTML = `
       <div class="producto-item">
         <label>Categoría:</label>
@@ -309,7 +308,7 @@ document.getElementById("formCrearProducto").addEventListener("submit", async e 
         <button type="button" class="btn btn-eliminar remove-producto">❌ Remover</button>
       </div>
     `;
-    cargarPedidos(); // Opcional, si quieres recargar algo
+    cargarPedidos(); 
   } catch (err) {
     console.error("Error al crear productos:", err);
   }
@@ -341,7 +340,64 @@ document.getElementById("btnConfirmLogoutNo").addEventListener("click", () => {
   modales.confirmLogout.style.display = "none";
 });
 
-// =================== INICIO ===================
+// =================== CARGAR PAGOS ===================
+async function cargarPagos() {
+  const tbody = document.querySelector("#tablaPagos tbody");
+  tbody.innerHTML = '<tr><td colspan="8">Cargando...</td></tr>';
+
+  try {
+    const res = await fetch("http://localhost:3000/api/pagosPanel", { credentials: "include" });
+    if (!res.ok) throw new Error("No se pudo obtener los pagos");
+
+    const pagos = await res.json();
+    tbody.innerHTML = "";
+
+    if (!pagos.length) {
+      tbody.innerHTML = `<tr><td colspan="8">No hay pagos registrados</td></tr>`;
+      return;
+    }
+
+    pagos.forEach(p => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.id_pago}</td>
+          <td>${p.id_pedido}</td>
+          <td>${p.usuario}</td>
+          <td>${p.correo}</td>
+          <td>$${p.monto ? Number(p.monto).toLocaleString("es-CO") : '0'}</td>
+          <td>${p.estado}</td>
+          <td>${p.fecha_pago ? new Date(p.fecha_pago).toLocaleString() : "—"}</td>
+          <td>${p.metodo_pago}</td>
+        </tr>`;
+    });
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="8">Error al cargar pagos</td></tr>';
+  }
+}
+
+// =================== NAVEGACIÓN ENTRE PESTAÑAS ===================
+document.getElementById("btnAdmin").addEventListener("click", () => {
+  document.getElementById("btnAdmin").classList.add("active");
+  document.getElementById("btnPagos").classList.remove("active");
+  document.getElementById("panelTitle").textContent = "📋 Panel de Administración";
+  document.getElementById("btnAbrirCrear").style.display = "inline-block";
+  document.getElementById("tablaPedidos").style.display = "table";
+  document.getElementById("tablaPagos").style.display = "none";
+  cargarPedidos();
+});
+
+document.getElementById("btnPagos").addEventListener("click", () => {
+  document.getElementById("btnPagos").classList.add("active");
+  document.getElementById("btnAdmin").classList.remove("active");
+  document.getElementById("panelTitle").textContent = "💳 Panel de Pagos";
+  document.getElementById("btnAbrirCrear").style.display = "none";
+  document.getElementById("tablaPedidos").style.display = "none";
+  document.getElementById("tablaPagos").style.display = "table";
+  cargarPagos();
+});
+
+// =================== INICIO DE SESION ===================
 window.addEventListener("DOMContentLoaded", async () => {
   // Verificar sesión
   try {

@@ -23,5 +23,6 @@ router.post('/cancelarPedido', verificarRol(['cliente', 'admin', 'administrador'
 
 // Endpoint para el panel de administración (solo admin o administrador)
 router.get('/pedidosPanel', verificarRol(['admin', 'administrador']), pedidosPanelController.getPedidosPanel);
+router.get('/pagosPanel', verificarRol(['admin', 'administrador']), pedidosPanelController.getPagosPanel);
 
 module.exports = router;

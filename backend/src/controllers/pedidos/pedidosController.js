@@ -183,7 +183,7 @@ async function getPedidosCocina(req, res) {
       JOIN Productos pr ON pp.id_producto = pr.id_producto
       JOIN Usuarios u ON p.id_usuario = u.id_usuario
       GROUP BY p.id_pedido, u.nombre
-      ORDER BY p.fecha_pedido DESC
+      ORDER BY p.id_pedido DESC
     `);
     await connection.end();
     res.json(rows);

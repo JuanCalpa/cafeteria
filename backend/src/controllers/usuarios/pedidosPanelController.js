@@ -24,7 +24,7 @@ async function getPedidosPanel(req, res) {
       ORDER BY p.id_pedido DESC
     `);
 
-    // Ahora añadimos los productos a cada pedido individualmente
+    //Añadimos los productos a cada pedido individualmente
     for (const pedido of pedidos) {
       const [productos] = await connection.execute(`
         SELECT 
@@ -78,9 +78,20 @@ async function getPedidoPorId(req, res) {
 
     const pedido = pedidoRows[0];
 
+    // Obtener el estado de pago más reciente para este pedido
+    const [pagoRows] = await connection.execute(`
+      SELECT estado AS estado_pago
+      FROM Pagos
+      WHERE id_pedido = ?
+      ORDER BY fecha_pago DESC
+      LIMIT 1
+    `, [id]);
+
+    pedido.estado_pago = pagoRows.length > 0 ? pagoRows[0].estado_pago : 'No pagado';
+
     // Obtener productos del pedido
     const [productosRows] = await connection.execute(`
-      SELECT 
+      SELECT
         pr.nombre,
         d.cantidad,
         REPLACE(REPLACE(pr.precio, '$', ''), ',', '') AS precio_num,
@@ -103,4 +114,36 @@ async function getPedidoPorId(req, res) {
   }
 }
 
-module.exports = { getPedidosPanel, getPedidoPorId };
+// ========================
+// OBTENER TODOS LOS PAGOS
+// ========================
+async function getPagosPanel(req, res) {
+  try {
+    const connection = await connect();
+
+    const [pagos] = await connection.execute(`
+      SELECT
+        pg.id_pago,
+        pg.id_pedido,
+        u.nombre AS usuario,
+        u.correo,
+        pg.monto,
+        pg.estado,
+        pg.fecha_pago,
+        pg.metodo_pago
+      FROM Pagos pg
+      JOIN Pedidos p ON pg.id_pedido = p.id_pedido
+      JOIN Usuarios u ON p.id_usuario = u.id_usuario
+      ORDER BY pg.id_pago DESC
+    `);
+
+    await connection.end();
+    res.json(pagos);
+
+  } catch (err) {
+    console.error("Error en getPagosPanel:", err);
+    res.status(500).json({ error: 'Error al obtener pagos panel' });
+  }
+}
+
+module.exports = { getPedidosPanel, getPedidoPorId, getPagosPanel };
