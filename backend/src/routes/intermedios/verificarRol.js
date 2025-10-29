@@ -1,5 +1,10 @@
 function verificarRol(rolesPermitidos = []) {
   return (req, res, next) => {
+    // Skip rol check for login and registro to allow all registered users
+    if (req.originalUrl.startsWith('/api/login') || req.originalUrl.startsWith('/api/registro')) {
+      return next();
+    }
+
     // Permitir acceso sin sesión (modo desarrollo)
     if (!req.session || !req.session.usuario) {
       console.warn('⚠️ Sin sesión activa, permitiendo acceso temporalmente (modo desarrollo)');
@@ -11,8 +16,8 @@ function verificarRol(rolesPermitidos = []) {
     console.log('Roles permitidos:', rolesPermitidos);
 
     if (!rolesPermitidos.includes(rolUsuario)) {
-      console.warn(`🚫 Acceso denegado para el rol: ${rolUsuario}`);
-      return res.status(403).json({ mensaje: `Acceso denegado para el rol: ${rolUsuario}` });
+      console.warn(`🚫 Acceso denegado: rol no autorizado.`);
+      return res.status(403).json({ mensaje: `Acceso denegado: rol no autorizado.` });
     }
 
     next();

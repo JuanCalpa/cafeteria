@@ -9,11 +9,13 @@ import 'pages/payment_page.dart';
 import 'pages/cart_page.dart';
 import 'pages/menu_page.dart';
 import 'providers/menu_provider.dart';
+import 'providers/auth_provider.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => CartProvider()),
         ChangeNotifierProvider(create: (context) => MenuProvider()),
       ],

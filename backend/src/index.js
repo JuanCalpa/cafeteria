@@ -32,6 +32,11 @@ app.use(cors({
 
 // ==================== RUTAS API ====================
 
+// Endpoint de health check
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Server is running' });
+});
+
 // Verificar sesión (antes de las rutas protegidas)
 app.get('/api/verificarSesion', (req, res) => {
   if (req.session && req.session.usuario) {
@@ -44,9 +49,27 @@ app.get('/api/verificarSesion', (req, res) => {
 // Conectar rutas principales
 app.use('/api', loginRouter);
 app.use('/api', usuarioRouter);
-app.use('/api', pedidosRouter);      
-app.use('/api', productosRouter);   
-app.use('/api', comprobanteRouter); 
+app.use('/api', pedidosRouter);
+app.use('/api', productosRouter);
+app.use('/api', comprobanteRouter);
+
+// Debug: Log de rutas registradas
+console.log('🔧 Rutas registradas:');
+console.log('  /health');
+console.log('  /api/verificarSesion');
+console.log('  /api/login (POST)');
+console.log('  /api/logout (POST)');
+console.log('  /api/registro (POST)');
+console.log('  /api/products (GET)');
+console.log('  /api/categories (GET)');
+console.log('  /api/categories/:categoryName/products (GET)');
+console.log('  /api/products/search (GET)');
+
+// Middleware para rutas API no encontradas (debe ir después de todas las rutas)
+app.use('/api', (req, res) => {
+  console.log(`Ruta no encontrada: ${req.method} ${req.path}`);
+  res.status(404).json({ error: 'Ruta no encontrada', path: req.path, method: req.method });
+});
 
 // ==================== FRONTEND ====================
 
@@ -71,6 +94,6 @@ app.get('/panelAdmin/frontend/panelCocina.html', (req, res) => {
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // ==================== SERVER ====================
-app.listen(3000, () => {
+app.listen(3000, '0.0.0.0', () => {
   console.log('✅ Servidor corriendo en http://localhost:3000');
 });

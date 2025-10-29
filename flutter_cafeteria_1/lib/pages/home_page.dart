@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'menu_page.dart'; // Asegúrate de importar el MenuPage
 import 'orders_page.dart'; // Importa la página de pedidos
+import '../providers/auth_provider.dart';
+import '../pages/login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -121,9 +124,15 @@ class _HomePageState extends State<HomePage> {
               'Cerrar Sesión',
               style: TextStyle(color: Color(0xFF5D4037)),
             ),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
-              // Cerrar sesión
+              final authProvider =
+                  Provider.of<AuthProvider>(context, listen: false);
+              await authProvider.logout();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
             },
           ),
         ],

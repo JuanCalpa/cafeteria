@@ -15,12 +15,30 @@ class _PaymentPageState extends State<PaymentPage> {
   File? _comprobanteImage;
   String? _selectedPaymentMethod;
   final ImagePicker _picker = ImagePicker();
+  bool _isPickingImage = false;
 
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+    if (_isPickingImage) return; // Evitar múltiples llamadas
+
+    setState(() {
+      _isPickingImage = true;
+    });
+
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _comprobanteImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      print('Error al seleccionar imagen: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al seleccionar la imagen')),
+      );
+    } finally {
       setState(() {
-        _comprobanteImage = File(image.path);
+        _isPickingImage = false;
       });
     }
   }
@@ -308,24 +326,29 @@ class _PaymentPageState extends State<PaymentPage> {
                     ),
                   ),
                   child: TextButton(
-                    onPressed: _pickImage,
+                    onPressed: _isPickingImage ? null : _pickImage,
                     style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFF8D6E63),
                     ),
-                    child: const Column(
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.cloud_upload, size: 40),
-                        SizedBox(height: 8),
+                        if (_isPickingImage)
+                          const CircularProgressIndicator(
+                            color: Color(0xFF8D6E63),
+                          )
+                        else
+                          const Icon(Icons.cloud_upload, size: 40),
+                        const SizedBox(height: 8),
                         Text(
-                          'Subir Comprobante',
-                          style: TextStyle(
+                          _isPickingImage ? 'Cargando...' : 'Subir Comprobante',
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
+                        const SizedBox(height: 4),
+                        const Text(
                           'Formatos: JPG, PNG',
                           style: TextStyle(fontSize: 12),
                         ),

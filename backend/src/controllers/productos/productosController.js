@@ -1,9 +1,64 @@
 const productosSql = require('./productosSql');
 
+// Función auxiliar para obtener icono basado en categoría
+function getIconForCategory(categoria) {
+    const iconMap = {
+        'ALMUERZOS': 'restaurant',
+        'BEBIDAS': 'local_drink',
+        'BEBIDAS PROPIAS': 'coffee',
+        'COMIDA RÁPIDA': 'fastfood',
+        'DESAYUNOS': 'breakfast_dining',
+        'DULCES': 'cake',
+        'HELADERIA': 'icecream',
+        'SANDUCHES': 'lunch_dining',
+        'PAPAS': 'fastfood',
+        'LACTEOS': 'local_drink',
+        'GASEOSAS': 'local_drink',
+        'PAQUETES': 'shopping_bag',
+        'PASTELERIA': 'cake',
+        'REFRESCOS': 'local_drink',
+        'VARIOS': 'category',
+        'MEDICAMENTOS': 'medication'
+    };
+    return iconMap[categoria] || 'restaurant_menu';
+}
+
+// Función auxiliar para obtener color basado en categoría
+function getColorForCategory(categoria) {
+    const colorMap = {
+        'ALMUERZOS': '#8D6E63',
+        'BEBIDAS': '#6D4C41',
+        'BEBIDAS PROPIAS': '#5D4037',
+        'COMIDA RÁPIDA': '#8D6E63',
+        'DESAYUNOS': '#6D4C41',
+        'DULCES': '#5D4037',
+        'HELADERIA': '#8D6E63',
+        'SANDUCHES': '#6D4C41',
+        'PAPAS': '#5D4037',
+        'LACTEOS': '#8D6E63',
+        'GASEOSAS': '#6D4C41',
+        'PAQUETES': '#5D4037',
+        'PASTELERIA': '#8D6E63',
+        'REFRESCOS': '#6D4C41',
+        'VARIOS': '#5D4037',
+        'MEDICAMENTOS': '#D32F2F'
+    };
+    return colorMap[categoria] || '#8D6E63';
+}
+
 async function getProductos(req, res) {
     try {
         const productos = await productosSql.getProductos();
-        res.json(productos);
+        // Transformar productos para compatibilidad con Flutter
+        const productosFormateados = productos.map(producto => ({
+            id: producto.id_producto,
+            name: producto.nombre,
+            price: parseFloat(producto.precio.replace(/[$,]/g, '')) || 0,
+            description: producto.descripcion,
+            category: producto.categoria,
+            icon: getIconForCategory(producto.categoria)
+        }));
+        res.json(productosFormateados);
     } catch (error) {
         console.error('Error al listar products:', error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -62,13 +117,61 @@ async function deleteProducto(req, res) {
 async function getCategorias(req, res) {
     try {
         const categorias = await productosSql.getCategorias();
-        res.json(categorias);
+        // Transformar para compatibilidad con Flutter
+        const categoriasFormateadas = categorias.map(cat => ({
+            name: cat,
+            icon: getIconForCategory(cat),
+            color: getColorForCategory(cat)
+        }));
+        res.json(categoriasFormateadas);
     } catch (error) {
         console.error('Error al obtener categorías:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }
 
+async function getProductosByCategory(req, res) {
+    try {
+        const { categoryName } = req.params;
+        const productos = await productosSql.getProductosByCategory(categoryName);
+        // Transformar productos para compatibilidad con Flutter
+        const productosFormateados = productos.map(producto => ({
+            id: producto.id_producto,
+            name: producto.nombre,
+            price: parseFloat(producto.precio.replace(/[$,]/g, '')) || 0,
+            description: producto.descripcion,
+            category: producto.categoria,
+            icon: getIconForCategory(producto.categoria)
+        }));
+        res.json(productosFormateados);
+    } catch (error) {
+        console.error('Error al obtener productos por categoría:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+async function searchProductos(req, res) {
+    try {
+        const { q } = req.query;
+        if (!q) {
+            return res.status(400).json({ error: 'Falta el parámetro de búsqueda q' });
+        }
+        const productos = await productosSql.searchProductos(q);
+        // Transformar productos para compatibilidad con Flutter
+        const productosFormateados = productos.map(producto => ({
+            id: producto.id_producto,
+            name: producto.nombre,
+            price: parseFloat(producto.precio.replace(/[$,]/g, '')) || 0,
+            description: producto.descripcion,
+            category: producto.categoria,
+            icon: getIconForCategory(producto.categoria)
+        }));
+        res.json(productosFormateados);
+    } catch (error) {
+        console.error('Error al buscar productos:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
 
 module.exports = {
     getProductos,
@@ -76,5 +179,7 @@ module.exports = {
     createProducto,
     updateProducto,
     deleteProducto,
-    getCategorias
+    getCategorias,
+    getProductosByCategory,
+    searchProductos
 };

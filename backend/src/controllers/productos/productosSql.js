@@ -49,6 +49,19 @@ async function getCategorias() {
     return rows.map(r => r.categoria);
 }
 
+async function getProductosByCategory(categoryName) {
+    const connection = await connect();
+    const [rows] = await connection.execute('SELECT * FROM Productos WHERE categoria = ? AND disponibilidad = "TRUE"', [categoryName]);
+    await connection.end();
+    return rows;
+}
+
+async function searchProductos(searchTerm) {
+    const connection = await connect();
+    const [rows] = await connection.execute('SELECT * FROM Productos WHERE nombre LIKE ? AND disponibilidad = "TRUE"', [`%${searchTerm}%`]);
+    await connection.end();
+    return rows;
+}
 
 module.exports = {
     getProductos,
@@ -56,5 +69,7 @@ module.exports = {
     createProducto,
     updateProducto,
     deleteProducto,
-    getCategorias
+    getCategorias,
+    getProductosByCategory,
+    searchProductos
 };

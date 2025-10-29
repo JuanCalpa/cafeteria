@@ -39,23 +39,23 @@ async function login(req, res) {
 
     console.log('Sesión activa:', req.session.usuario);
 
-    let destino = null;
-    switch (usuario.rol) {
-      case 'administrador':
-        destino = '/panelAdmin/frontend/panel.html';
-        break;
-      case 'cocina':
-        destino = '/panelAdmin/frontend/panelCocina.html';
-        break;
-      default:
-        return res.status(403).json({ mensaje: 'Acceso denegado: rol no autorizado.' });
+    // Determinar destino basado en el rol
+    let destino;
+    if (usuario.rol === 'administrador') {
+      destino = '/panelAdmin/frontend/panel.html';
+    } else if (usuario.rol === 'cocina') {
+      destino = '/panelAdmin/frontend/panelCocina.html';
+    } else {
+      // Para otros roles, redirigir al login o página principal
+      destino = '/';
     }
 
-
+    console.log('Login exitoso para rol:', usuario.rol, 'destino:', destino);
     return res.status(200).json({
       mensaje: 'Inicio de sesión exitoso',
       usuario: req.session.usuario,
-      destino
+      rol: usuario.rol,
+      destino: destino
     });
 
   } catch (error) {

@@ -328,9 +328,9 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Servidor ejecutándose en http://0.0.0.0:${PORT}`);
+  console.log(`🚀 Servidor Flutter ejecutándose en http://0.0.0.0:${PORT}`);
   console.log(`📊 Conectado a: ${dbConfig.host}:${dbConfig.port}`);
   console.log(`🗄️  Base de datos: ${dbConfig.database}`);
   console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
