@@ -24,9 +24,9 @@ app.use(session({
   cookie: { secure: false, maxAge: 600000 }
 }));
 
-// CORS
+// CORS - Configuración más permisiva para desarrollo
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'http://10.0.2.2:3000'],
   credentials: true
 }));
 
@@ -54,21 +54,50 @@ app.use('/api', productosRouter);
 app.use('/api', comprobanteRouter);
 
 // Debug: Log de rutas registradas
-console.log('🔧 Rutas registradas:');
-console.log('  /health');
-console.log('  /api/verificarSesion');
-console.log('  /api/login (POST)');
-console.log('  /api/logout (POST)');
-console.log('  /api/registro (POST)');
-console.log('  /api/products (GET)');
-console.log('  /api/categories (GET)');
-console.log('  /api/categories/:categoryName/products (GET)');
-console.log('  /api/products/search (GET)');
+function logRegisteredRoutes() {
+  console.log('🔧 Rutas registradas:');
+  
+  // Rutas directas
+  console.log('  /health');
+  console.log('  /api/verificarSesion');
+  
+  // Rutas de los routers
+  const routes = [
+    '/api/login (POST)',
+    '/api/logout (POST)', 
+    '/api/registro (POST)',
+    '/api/products (GET)',
+    '/api/categories (GET)',
+    '/api/categories/:categoryName/products (GET)',
+    '/api/products/search (GET)',
+    '/api/createComprobante (POST)',
+    '/api/getComprobante/:id_confirmacion (GET)',
+    '/api/getComprobanteFile/:id_confirmacion (GET)'
+  ];
+  
+  routes.forEach(route => console.log('  ' + route));
+}
+
+logRegisteredRoutes();
 
 // Middleware para rutas API no encontradas (debe ir después de todas las rutas)
 app.use('/api', (req, res) => {
-  console.log(`Ruta no encontrada: ${req.method} ${req.path}`);
-  res.status(404).json({ error: 'Ruta no encontrada', path: req.path, method: req.method });
+  console.log(`❌ Ruta API no encontrada: ${req.method} ${req.path}`);
+  res.status(404).json({ 
+    error: 'Ruta API no encontrada', 
+    path: req.path, 
+    method: req.method,
+    availableRoutes: [
+      '/health',
+      '/api/verificarSesion',
+      '/api/login',
+      '/api/logout',
+      '/api/registro',
+      '/api/products',
+      '/api/categories',
+      '/api/createComprobante'
+    ]
+  });
 });
 
 // ==================== FRONTEND ====================
@@ -96,4 +125,5 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // ==================== SERVER ====================
 app.listen(3000, '0.0.0.0', () => {
   console.log('✅ Servidor corriendo en http://localhost:3000');
+  console.log('🌍 Accesible desde: http://10.0.2.2:3000 (Emulador Android)');
 });

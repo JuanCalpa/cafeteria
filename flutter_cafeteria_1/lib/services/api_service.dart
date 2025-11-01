@@ -1,4 +1,6 @@
+// lib/services/api_service.dart
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/category_model.dart';
 
@@ -205,6 +207,99 @@ class ApiService {
     } catch (e) {
       print('❌ Error verificando sesión: $e');
       throw Exception('Error verifying session: $e');
+    }
+  }
+
+  // Crear pedido desde la app
+  Future<Map<String, dynamic>> crearPedidoDesdeApp(
+      int idUsuario, List<Map<String, dynamic>> productos) async {
+    try {
+      print('🔄 Creando pedido desde app para usuario: $idUsuario');
+
+      final response = await client.post(
+        Uri.parse('$baseUrl/api/crearPedidoDesdeApp'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'id_usuario': idUsuario,
+          'productos': productos,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('✅ Pedido creado: ${data['id_pedido']}');
+        return data;
+      } else {
+        print(
+            '❌ Error creando pedido: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to create order: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error creando pedido: $e');
+      throw Exception('Error creating order: $e');
+    }
+  }
+
+  // Subir comprobante de pago - VERSIÓN MEJORADA
+  Future<Map<String, dynamic>> subirComprobante(
+      int idPedido, int idUsuario, String filePath) async {
+    try {
+      print(
+          '🔄 Subiendo comprobante para pedido: $idPedido, usuario: $idUsuario');
+      print('📁 Ruta del archivo: $filePath');
+
+      // Verificar que el archivo existe
+      File file = File(filePath);
+      if (!await file.exists()) {
+        throw Exception('El archivo no existe en la ruta: $filePath');
+      }
+
+      // Verificar tamaño del archivo
+      final fileStat = await file.stat();
+      print('📊 Tamaño del archivo: ${fileStat.size} bytes');
+
+      if (fileStat.size > 5 * 1024 * 1024) {
+        throw Exception('El archivo es demasiado grande (máximo 5MB)');
+      }
+
+      var request = http.MultipartRequest(
+          'POST', Uri.parse('$baseUrl/api/createComprobante'));
+
+      request.fields['id_pedido'] = idPedido.toString();
+      request.fields['id_usuario'] = idUsuario.toString();
+
+      // Agregar el archivo con nombre específico
+      request.files.add(await http.MultipartFile.fromPath(
+          'comprobante', filePath,
+          filename:
+              'comprobante_${DateTime.now().millisecondsSinceEpoch}.jpg'));
+
+      print('📤 Enviando request multipart a: $baseUrl/api/createComprobante');
+
+      var response = await request.send();
+      var responseData = await response.stream.bytesToString();
+
+      print('📥 Respuesta - Status: ${response.statusCode}');
+      print('📥 Body: $responseData');
+
+      if (response.statusCode == 201) {
+        final data = json.decode(responseData);
+        print('✅ Comprobante subido exitosamente: $data');
+        return data;
+      } else {
+        print('❌ Error del servidor: ${response.statusCode}');
+        // Intentar parsear como JSON, si falla mostrar el raw response
+        try {
+          final errorData = json.decode(responseData);
+          throw Exception('Error del servidor: ${errorData['error']}');
+        } catch (e) {
+          throw Exception(
+              'Error del servidor (${response.statusCode}): $responseData');
+        }
+      }
+    } catch (e) {
+      print('❌ Error subiendo comprobante: $e');
+      rethrow;
     }
   }
 }

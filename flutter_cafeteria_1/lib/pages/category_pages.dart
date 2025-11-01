@@ -275,9 +275,11 @@ class _CategoryPageState extends State<CategoryPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 6), // Reducido de 8 a 6
                   ),
-                  child: const Text('Agregar', style: TextStyle(fontSize: 12)),
+                  child: const Text('Agregar',
+                      style: TextStyle(fontSize: 11)), // Reducido de 12 a 11
                 ),
               ),
             ],

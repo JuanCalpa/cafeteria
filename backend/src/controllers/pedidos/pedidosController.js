@@ -193,11 +193,47 @@ async function getPedidosCocina(req, res) {
   }
 }
 
+// Crear pedido desde la app móvil
+async function crearPedidoDesdeApp(req, res) {
+  const { id_usuario, productos } = req.body;
+
+  if (!id_usuario || !productos || productos.length === 0) {
+    return res.status(400).json({ error: 'Datos incompletos para crear pedido' });
+  }
+
+  try {
+    const connection = await connect();
+
+    // Crear el pedido base con estado 'pendiente'
+    const [pedido] = await connection.execute(
+      'INSERT INTO Pedidos (id_usuario, estado, fecha_pedido) VALUES (?, ?, NOW())',
+      [id_usuario, 'pendiente']
+    );
+
+    const id_pedido = pedido.insertId;
+
+    // Insertar los productos del pedido
+    for (const p of productos) {
+      await connection.execute(
+        'INSERT INTO Producto_Pedido (id_pedido, id_producto, cantidad) VALUES (?, ?, ?)',
+        [id_pedido, p.id_producto, p.cantidad]
+      );
+    }
+
+    await connection.end();
+    res.json({ success: true, message: 'Pedido creado correctamente', id_pedido });
+  } catch (err) {
+    console.error('Error al crear pedido desde app:', err);
+    res.status(500).json({ error: 'Error al crear el pedido' });
+  }
+}
+
 module.exports = {
   getAllPedidos,
   getPedidoById,
   actualizarPedido,
   cancelarPedido,
   crearPedidoManual,
-  getPedidosCocina
+  getPedidosCocina,
+  crearPedidoDesdeApp
 };

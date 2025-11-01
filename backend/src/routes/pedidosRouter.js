@@ -20,4 +20,7 @@ router.post('/cancelarPedido', verificarRol(['administrador']), pedidosControlle
 // Crear pedido manual
 router.post('/crearPedidoManual', verificarRol(['administrador']), pedidosController.crearPedidoManual);
 
+// Crear pedido desde la app móvil
+router.post('/crearPedidoDesdeApp', pedidosController.crearPedidoDesdeApp);
+
 module.exports = router;

@@ -1,9 +1,9 @@
 const connect = require('../../database/sqlConnection');
 
-async function createComprobante(id_pedido, id_usuario, buffer) {
+async function createComprobante(id_pedido, id_usuario, buffer, mime, originalName) {
   const connection = await connect();
-  const sql = 'INSERT INTO Confirmaciones_Pago (id_pedido, id_usuario, comprobante_foto) VALUES (?, ?, ?)';
-  const [result] = await connection.execute(sql, [id_pedido, id_usuario, buffer]);
+  const sql = 'INSERT INTO Confirmaciones_Pago (id_pedido, id_usuario, comprobante_blob, comprobante_mime, comprobante_nombre) VALUES (?, ?, ?, ?, ?)';
+  const [result] = await connection.execute(sql, [id_pedido, id_usuario, buffer, mime, originalName]);
   await connection.end();
   return result;
 }

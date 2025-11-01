@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../pages/cart_provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
 
 class PaymentPage extends StatefulWidget {
   const PaymentPage({super.key});
@@ -579,8 +581,10 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
-  void _processPayment(BuildContext context, String paymentMethod) {
+  void _processPayment(BuildContext context, String paymentMethod) async {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final apiService = ApiService();
 
     showDialog(
       context: context,
@@ -612,8 +616,32 @@ class _PaymentPageState extends State<PaymentPage> {
       },
     );
 
-    // Simular envío del pedido
-    Future.delayed(const Duration(seconds: 2), () {
+    try {
+      // Convertir CartItems a formato para API
+      List<Map<String, dynamic>> productos = cartProvider.cartItems.map((item) {
+        return {
+          'id_producto': item.id,
+          'cantidad': item.quantity,
+        };
+      }).toList();
+
+      // Crear pedido
+      final pedidoResponse = await apiService.crearPedidoDesdeApp(
+        authProvider.user!.id,
+        productos,
+      );
+
+      int idPedido = pedidoResponse['id_pedido'];
+
+      // Si hay comprobante, subirlo
+      if (_comprobanteImage != null && paymentMethod != 'Efectivo') {
+        await apiService.subirComprobante(
+          idPedido,
+          authProvider.user!.id,
+          _comprobanteImage!.path,
+        );
+      }
+
       Navigator.of(context).pop(); // Cerrar diálogo de procesamiento
 
       showDialog(
@@ -638,7 +666,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Tu pedido está en espera de confirmación.',
+                  'Tu pedido ha sido creado exitosamente.',
                   style: TextStyle(color: Color(0xFF6D4C41)),
                   textAlign: TextAlign.center,
                 ),
@@ -678,6 +706,37 @@ class _PaymentPageState extends State<PaymentPage> {
           );
         },
       );
-    });
+    } catch (e) {
+      Navigator.of(context).pop(); // Cerrar diálogo de procesamiento
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFFFDF5E6),
+            title: const Text(
+              'Error',
+              style: TextStyle(
+                color: Color(0xFFD32F2F),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              'Error al procesar el pedido: $e',
+              style: const TextStyle(color: Color(0xFF6D4C41)),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF6D4C41),
+                ),
+                child: const Text('Cerrar'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }
