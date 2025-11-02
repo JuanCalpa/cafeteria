@@ -23,7 +23,7 @@ function getIconForCategory(categoria) {
     return iconMap[categoria] || 'restaurant_menu';
 }
 
-// Función auxiliar para obtener color basado en categoría
+
 function getColorForCategory(categoria) {
     const colorMap = {
         'ALMUERZOS': '#8D6E63',
@@ -49,13 +49,14 @@ function getColorForCategory(categoria) {
 async function getProductos(req, res) {
     try {
         const productos = await productosSql.getProductos();
-        // Transformar productos para compatibilidad con Flutter
+        
         const productosFormateados = productos.map(producto => ({
             id: producto.id_producto,
             name: producto.nombre,
             price: parseFloat(producto.precio.replace(/[$,]/g, '')) || 0,
             description: producto.descripcion,
             category: producto.categoria,
+            available: producto.disponibilidad,
             icon: getIconForCategory(producto.categoria)
         }));
         res.json(productosFormateados);
@@ -117,7 +118,7 @@ async function deleteProducto(req, res) {
 async function getCategorias(req, res) {
     try {
         const categorias = await productosSql.getCategorias();
-        // Transformar para compatibilidad con Flutter
+        
         const categoriasFormateadas = categorias.map(cat => ({
             name: cat,
             icon: getIconForCategory(cat),
@@ -141,6 +142,7 @@ async function getProductosByCategory(req, res) {
             price: parseFloat(producto.precio.replace(/[$,]/g, '')) || 0,
             description: producto.descripcion,
             category: producto.categoria,
+            available: producto.disponibilidad,
             icon: getIconForCategory(producto.categoria)
         }));
         res.json(productosFormateados);
@@ -164,6 +166,7 @@ async function searchProductos(req, res) {
             price: parseFloat(producto.precio.replace(/[$,]/g, '')) || 0,
             description: producto.descripcion,
             category: producto.categoria,
+            available: producto.disponibilidad,
             icon: getIconForCategory(producto.categoria)
         }));
         res.json(productosFormateados);

@@ -30,6 +30,7 @@
     <ul>
       <li class="active" id="btnAdmin">Panel Administración</li>
       <li id="btnPagos">Pagos</li>
+      <li id="btnProductos">Productos</li>
       <li id="btnLogout">Cerrar Sesión</li>
     </ul>
   </div>
@@ -38,9 +39,7 @@
   <div class="main-content">
     <div class="panel-header">
     <h1 id="panelTitle">📋 Panel de Administración</h1>
-      <div>
-        <button class="btn btn-nuevo" id="btnAbrirCrear">➕ Agregar Producto</button>
-      </div>
+    <div id="btnContainer"></div>
     </div>
 
     <div class="tabla-container">
@@ -61,14 +60,27 @@
       <table id="tablaPagos" style="display: none;">
         <thead>
           <tr>
-            <th>ID Pago</th>
+            <th>ID Confirmación</th>
             <th>ID Pedido</th>
             <th>Usuario</th>
-            <th>Correo</th>
-            <th>Monto</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-            <th>Método</th>
+            <th>Productos</th>
+            <th>Comprobante</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <table id="tablaProductos" style="display: none;">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Disponibilidad</th>
+            <th>Categoría</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -107,14 +119,13 @@
     </div>
   </div>
 
-  <!-- Modal Pago -->
-  <div id="modalPago" class="modal">
+  <!-- Modal Eliminar -->
+  <div id="modalEliminar" class="modal">
     <div class="modal-box">
-      <span class="close" id="cerrarModalPago">&times;</span>
-      <h2>Gestión de Pago</h2>
-      <div id="detallePedidoPago"></div>
+      <span class="close" id="cerrarModalEliminar">&times;</span>
+      <h2>Eliminar Pedido</h2>
+      <div id="detallePedidoEliminar"></div>
       <div class="modal-actions">
-        <button id="btnCambiarPagado" class="btn btn-pagar">Cambiar a Pagado</button>
         <button id="btnEliminarPedido" class="btn btn-eliminar">Eliminar Pedido</button>
       </div>
     </div>

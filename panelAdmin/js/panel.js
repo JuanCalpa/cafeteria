@@ -1,7 +1,7 @@
 const modales = {
   ver: document.getElementById("modalVer"),
   editar: document.getElementById("modalEditar"),
-  pago: document.getElementById("modalPago"),
+  eliminar: document.getElementById("modalEliminar"),
   crear: document.getElementById("modalCrear"),
   confirmEdit: document.getElementById("modalConfirmEdit"),
   confirmPago: document.getElementById("modalConfirmPago"),
@@ -49,7 +49,7 @@ async function cargarPedidos() {
           <td>
             <button class="btn btn-ver" onclick="verPedido(${p.id_pedido})">Ver</button>
             <button class="btn btn-editar" onclick="editarPedido(${p.id_pedido})">Editar</button>
-            <button class="btn btn-pagar" onclick="pagoPedido(${p.id_pedido})">Pago</button>
+            <button class="btn btn-eliminar" onclick="eliminarPedido(${p.id_pedido})">Eliminar</button>
           </td>
         </tr>`;
     });
@@ -144,37 +144,10 @@ document.getElementById("formEditarPedido").addEventListener("submit", async e =
   };
 });
 
-// =================== PAGO PEDIDO ===================
-function pagoPedido(id) {
-  document.getElementById("detallePedidoPago").innerHTML = `<p>Gestión del pedido #${id}</p>`;
-  modales.pago.style.display = "flex";
-
-  document.getElementById("btnCambiarPagado").onclick = async () => {
-    // Mostrar modal de confirmación
-    document.getElementById("confirmPagoText").textContent = `¿Estás seguro de marcar el pedido #${id} como entregado?`;
-    modales.confirmPago.style.display = "flex";
-
-    // Configurar botones de confirmación
-    document.getElementById("btnConfirmPagoYes").onclick = async () => {
-      modales.confirmPago.style.display = "none";
-      try {
-        await fetch("http://localhost:3000/api/actualizarPedido", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ id_pedido: id, estado: "entregado" })
-        });
-        modales.pago.style.display = "none";
-        cargarPedidos();
-      } catch (err) {
-        console.error("Error al cambiar estado:", err);
-      }
-    };
-
-    document.getElementById("btnConfirmPagoNo").onclick = () => {
-      modales.confirmPago.style.display = "none";
-    };
-  };
+// =================== ELIMINAR PEDIDO ===================
+function eliminarPedido(id) {
+  document.getElementById("detallePedidoEliminar").innerHTML = `<p>Eliminar el pedido #${id}</p>`;
+  modales.eliminar.style.display = "flex";
 
   document.getElementById("btnEliminarPedido").onclick = async () => {
     // Mostrar modal de confirmación
@@ -191,7 +164,7 @@ function pagoPedido(id) {
           credentials: "include",
           body: JSON.stringify({ id_pedido: id })
         });
-        modales.pago.style.display = "none";
+        modales.eliminar.style.display = "none";
         cargarPedidos();
       } catch (err) {
         console.error("Error al eliminar pedido:", err);
@@ -205,14 +178,11 @@ function pagoPedido(id) {
 }
 
 // =================== AGREGAR PRODUCTO ===================
-document.getElementById("btnAbrirCrear").addEventListener("click", () => {
-  cargarCategorias();
-  modales.crear.style.display = "flex";
-});
+// Event listener will be attached dynamically when the button is created
 
 async function cargarCategorias() {
   try {
-    const res = await fetch("http://localhost:3000/api/categorias");
+    const res = await fetch("http://localhost:3000/api/categories");
     if (!res.ok) throw new Error("Error al cargar categorías");
     const categorias = await res.json();
     const selects = document.querySelectorAll("#productosContainer .categoria");
@@ -308,7 +278,7 @@ document.getElementById("formCrearProducto").addEventListener("submit", async e 
         <button type="button" class="btn btn-eliminar remove-producto">❌ Remover</button>
       </div>
     `;
-    cargarPedidos(); 
+    cargarPedidos();
   } catch (err) {
     console.error("Error al crear productos:", err);
   }
@@ -343,7 +313,7 @@ document.getElementById("btnConfirmLogoutNo").addEventListener("click", () => {
 // =================== CARGAR PAGOS ===================
 async function cargarPagos() {
   const tbody = document.querySelector("#tablaPagos tbody");
-  tbody.innerHTML = '<tr><td colspan="8">Cargando...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
 
   try {
     const res = await fetch("http://localhost:3000/api/pagosPanel", { credentials: "include" });
@@ -353,26 +323,146 @@ async function cargarPagos() {
     tbody.innerHTML = "";
 
     if (!pagos.length) {
-      tbody.innerHTML = `<tr><td colspan="8">No hay pagos registrados</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6">No hay pagos registrados</td></tr>`;
       return;
     }
 
     pagos.forEach(p => {
+      const productosTexto = Array.isArray(p.productos) && p.productos.length > 0
+        ? p.productos.map(prod => `${prod.nombre} x${prod.cantidad}`).join(", ")
+        : "Sin productos";
+
       tbody.innerHTML += `
         <tr>
-          <td>${p.id_pago}</td>
+          <td>${p.id_confirmacion}</td>
           <td>${p.id_pedido}</td>
           <td>${p.usuario}</td>
-          <td>${p.correo}</td>
-          <td>$${p.monto ? Number(p.monto).toLocaleString("es-CO") : '0'}</td>
-          <td>${p.estado}</td>
-          <td>${p.fecha_pago ? new Date(p.fecha_pago).toLocaleString() : "—"}</td>
-          <td>${p.metodo_pago}</td>
+          <td>${productosTexto}</td>
+          <td>
+            <button class="btn btn-ver" onclick="verComprobante(${p.id_confirmacion})">Ver Comprobante</button>
+          </td>
+          <td>
+            <button class="btn btn-editar" onclick="cambiarEstadoEntregado(${p.id_pedido})">Marcar Entregado</button>
+          </td>
         </tr>`;
     });
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = '<tr><td colspan="8">Error al cargar pagos</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6">Error al cargar pagos</td></tr>';
+  }
+}
+
+// =================== VER COMPROBANTE ===================
+async function verComprobante(idConfirmacion) {
+  try {
+    const res = await fetch(`http://localhost:3000/api/getComprobanteFile/${idConfirmacion}`, {
+      credentials: "include"
+    });
+
+    if (!res.ok) throw new Error("No se pudo obtener el comprobante");
+
+    // Si el servidor devuelve imagen, esto la abre directamente
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  } catch (err) {
+    console.error("Error al ver comprobante:", err);
+    alert("Error al cargar el comprobante");
+  }
+}
+
+
+
+// =================== CAMBIAR ESTADO A ENTREGADO ===================
+async function cambiarEstadoEntregado(idPedido) {
+  // Mostrar modal de confirmación
+  document.getElementById("confirmPagoText").textContent = `¿Estás seguro de marcar el pedido #${idPedido} como entregado? Esta acción cambiará el estado del pedido a "entregado".`;
+  modales.confirmPago.style.display = "flex";
+
+  // Configurar botones de confirmación
+  document.getElementById("btnConfirmPagoYes").onclick = async () => {
+    modales.confirmPago.style.display = "none";
+    try {
+      const res = await fetch("http://localhost:3000/api/actualizarPedido", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id_pedido: idPedido, estado: "entregado" })
+      });
+
+      if (!res.ok) throw new Error("Error al actualizar pedido");
+
+      cargarPagos(); // Recargar la tabla de pagos
+    } catch (err) {
+      console.error("Error al cambiar estado:", err);
+      alert("Error al cambiar el estado del pedido");
+    }
+  };
+
+  document.getElementById("btnConfirmPagoNo").onclick = () => {
+    modales.confirmPago.style.display = "none";
+  };
+}
+
+// =================== CARGAR PRODUCTOS ===================
+async function cargarProductos() {
+  const tbody = document.querySelector("#tablaProductos tbody");
+  tbody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
+
+  try {
+    const res = await fetch("http://localhost:3000/api/products", { credentials: "include" });
+    if (!res.ok) throw new Error("No se pudo obtener los productos");
+
+    const productos = await res.json();
+    tbody.innerHTML = "";
+
+    if (!productos.length) {
+      tbody.innerHTML = `<tr><td colspan="7">No hay productos registrados</td></tr>`;
+      return;
+    }
+
+    productos.forEach(p => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.id}</td>
+          <td>${p.name}</td>
+          <td>${p.description || "—"}</td>
+          <td>$${p.price.toLocaleString("es-CO")}</td>
+          <td>${p.available === 'TRUE' ? "Disponible" : "No disponible"}</td>
+          <td>${p.category}</td>
+          <td>
+            <button class="btn btn-editar" onclick="editarProducto(${p.id})">Editar</button>
+            <button class="btn btn-eliminar" onclick="eliminarProducto(${p.id})">Eliminar</button>
+          </td>
+        </tr>`;
+    });
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="7">Error al cargar productos</td></tr>';
+  }
+}
+
+// =================== EDITAR PRODUCTO ===================
+function editarProducto(id) {
+  // Implementar modal para editar producto
+  alert("Funcionalidad de editar producto próximamente");
+}
+
+// =================== ELIMINAR PRODUCTO ===================
+function eliminarProducto(id) {
+  if (confirm(`¿Estás seguro de eliminar el producto #${id}?`)) {
+    fetch(`http://localhost:3000/api/deleteProducto/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    })
+    .then(res => {
+      if (res.ok) {
+        cargarProductos();
+      } else {
+        alert("Error al eliminar producto");
+      }
+    })
+    .catch(err => console.error(err));
   }
 }
 
@@ -380,21 +470,43 @@ async function cargarPagos() {
 document.getElementById("btnAdmin").addEventListener("click", () => {
   document.getElementById("btnAdmin").classList.add("active");
   document.getElementById("btnPagos").classList.remove("active");
+  document.getElementById("btnProductos").classList.remove("active");
   document.getElementById("panelTitle").textContent = "📋 Panel de Administración";
-  document.getElementById("btnAbrirCrear").style.display = "inline-block";
+  document.getElementById("btnContainer").innerHTML = "";
   document.getElementById("tablaPedidos").style.display = "table";
   document.getElementById("tablaPagos").style.display = "none";
+  document.getElementById("tablaProductos").style.display = "none";
   cargarPedidos();
 });
 
 document.getElementById("btnPagos").addEventListener("click", () => {
   document.getElementById("btnPagos").classList.add("active");
   document.getElementById("btnAdmin").classList.remove("active");
+  document.getElementById("btnProductos").classList.remove("active");
   document.getElementById("panelTitle").textContent = "💳 Panel de Pagos";
-  document.getElementById("btnAbrirCrear").style.display = "none";
+  document.getElementById("btnContainer").innerHTML = "";
   document.getElementById("tablaPedidos").style.display = "none";
   document.getElementById("tablaPagos").style.display = "table";
+  document.getElementById("tablaProductos").style.display = "none";
   cargarPagos();
+});
+
+document.getElementById("btnProductos").addEventListener("click", () => {
+  document.getElementById("btnProductos").classList.add("active");
+  document.getElementById("btnAdmin").classList.remove("active");
+  document.getElementById("btnPagos").classList.remove("active");
+  document.getElementById("panelTitle").textContent = "📦 Panel de Productos";
+  document.getElementById("btnContainer").innerHTML = '<button class="btn btn-nuevo" id="btnAbrirCrear">➕ Agregar Producto</button>';
+  document.getElementById("tablaPedidos").style.display = "none";
+  document.getElementById("tablaPagos").style.display = "none";
+  document.getElementById("tablaProductos").style.display = "table";
+  cargarProductos();
+
+  // Attach event listener to the newly created button
+  document.getElementById("btnAbrirCrear").addEventListener("click", () => {
+    cargarCategorias();
+    modales.crear.style.display = "flex";
+  });
 });
 
 // =================== INICIO DE SESION ===================

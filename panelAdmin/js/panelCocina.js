@@ -1,5 +1,22 @@
 // panelAdmin/js/panelCocina.js
 
+const modales = {
+  confirmLogout: document.getElementById("modalConfirmLogout")
+};
+
+// =================== CERRAR MODALES ===================
+document.querySelectorAll(".close").forEach(btn => {
+  btn.addEventListener("click", () => {
+    Object.values(modales).forEach(m => (m.style.display = "none"));
+  });
+});
+
+window.addEventListener("click", e => {
+  Object.values(modales).forEach(m => {
+    if (e.target === m) m.style.display = "none";
+  });
+});
+
 // Verificar sesión al cargar la página
 window.addEventListener("DOMContentLoaded", async () => {
   try {
@@ -50,15 +67,28 @@ async function cargarPedidosCocina() {
   }
 }
 
-// Logout
-document.getElementById("btnLogout").addEventListener("click", async () => {
+// =================== CERRAR SESIÓN ===================
+document.getElementById("btnLogout").addEventListener("click", () => {
+  modales.confirmLogout.style.display = "flex";
+});
+
+document.getElementById("btnConfirmLogoutYes").addEventListener("click", async () => {
   try {
-    await fetch("http://localhost:3000/api/logout", {
+    const res = await fetch("http://localhost:3000/api/logout", {
       method: "POST",
       credentials: "include"
     });
-    window.location.href = "/";
+    if (res.ok) {
+      window.location.href = "/";
+    } else {
+      alert("Error al cerrar sesión");
+    }
   } catch (err) {
     console.error("Error al cerrar sesión:", err);
+    alert("Error al cerrar sesión");
   }
+});
+
+document.getElementById("btnConfirmLogoutNo").addEventListener("click", () => {
+  modales.confirmLogout.style.display = "none";
 });

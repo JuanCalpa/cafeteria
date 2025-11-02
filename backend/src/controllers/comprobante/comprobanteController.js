@@ -1,9 +1,10 @@
 // backend/src/controllers/comprobante/comprobanteController.js
-const comprobanteSql = require('./comprobanteSql');
+
+const fs = require('fs');
 const path = require('path');
-const FileType = (() => {
-  try { return require('file-type'); } catch { return null; }
-})();
+const crypto = require('crypto');
+const { fileTypeFromBuffer } = require('file-type');
+const comprobanteSql = require('./comprobanteSql');
 
 async function createComprobante(req, res) {
   try {
@@ -32,14 +33,39 @@ async function createComprobante(req, res) {
     console.log('✅ Datos completos, procesando comprobante...');
     
     const buffer = req.file.buffer;
-    const mime = req.file.mimetype;
-    const originalName = req.file.originalname;
+    let mimeType = req.file.mimetype;
+    let originalName = req.file.originalname;
 
-    console.log(`📊 Procesando archivo: ${originalName}, Tipo: ${mime}, Tamaño: ${buffer.length} bytes`);
+    // 🧠 Detección del tipo MIME más precisa
+    if (!mimeType || mimeType === 'application/octet-stream') {
+      const detected = await fileTypeFromBuffer(buffer);
+      if (detected?.mime) {
+        mimeType = detected.mime;
+        console.log(`🔍 MIME detectado con file-type: ${mimeType}`);
+      } else {
+        mimeType = mime.lookup(originalName) || 'application/octet-stream';
+        console.log(`⚙️ MIME inferido por extensión: ${mimeType}`);
+      }
+    }
 
-    const result = await comprobanteSql.createComprobante(id_pedido, id_usuario, buffer, mime, originalName);
+    // 📄 Asegurar extensión correcta
+    if (!path.extname(originalName)) {
+      const ext = mime.extension(mimeType);
+      if (ext) originalName += `.${ext}`;
+    }
 
-    // Actualizar el estado del pedido a 'confirmado' después de subir el comprobante
+    console.log(`📊 Archivo final: ${originalName}, MIME: ${mimeType}, Tamaño: ${buffer.length} bytes`);
+
+    // 💾 Guardar en base de datos
+    const result = await comprobanteSql.createComprobante(
+      id_pedido,
+      id_usuario,
+      buffer,
+      mimeType,
+      originalName
+    );
+
+    // 🔄 Actualizar el estado del pedido a 'confirmado'
     console.log(`🔄 Actualizando estado del pedido ${id_pedido} a 'confirmado'`);
     const connect = require('../../database/sqlConnection');
     const connection = await connect();
@@ -55,9 +81,6 @@ async function createComprobante(req, res) {
     });
   } catch (err) {
     console.error('💥 Error al crear comprobante:', err);
-    if (err.code === 'PENDING_PEDIDO_NOT_FOUND') {
-      return res.status(400).json({ error: 'Pedido no existe' });
-    }
     return res.status(500).json({ error: 'Internal Server Error', details: err.message });
   }
 }
@@ -66,55 +89,76 @@ async function getComprobanteFile(req, res) {
   try {
     const { id_confirmacion } = req.params;
     console.log(`📥 Solicitando comprobante file: ${id_confirmacion}`);
-    
+
     const row = await comprobanteSql.getComprobanteById(id_confirmacion);
     if (!row) {
       console.log(`❌ Comprobante no encontrado: ${id_confirmacion}`);
       return res.status(404).json({ error: 'Comprobante no encontrado' });
     }
 
-    // soporte: 1) blob almacenado en comprobante_blob 2) blob almacenado en comprobante_foto 3) ruta guardada en comprobante_foto
-    const blob = row.comprobante_blob || row.comprobante_foto;
-
-    console.log(`📊 Tipo de dato del comprobante: ${typeof blob}, ¿Es buffer?: ${Buffer.isBuffer(blob)}`);
-
-    // si es buffer (BLOB)
-    if (Buffer.isBuffer(blob)) {
-      let mime = 'application/octet-stream';
-      if (FileType && FileType.fromBuffer) {
-        const ft = await FileType.fromBuffer(blob);
-        if (ft && ft.mime) mime = ft.mime;
-      } else if (row.comprobante_mime) {
-        mime = row.comprobante_mime;
-      }
-      
-      console.log(`📁 Enviando archivo como buffer. MIME: ${mime}, Tamaño: ${blob.length} bytes`);
-      
-      res.setHeader('Content-Type', mime);
-      res.setHeader('Content-Disposition', `inline; filename="${(row.comprobante_nombre || 'comprobante')}"`);
-      return res.send(blob);
+    let blob = row.comprobante_blob;
+    if (!blob) {
+      console.log('❌ No hay dato de comprobante en la fila');
+      return res.status(404).json({ error: 'Comprobante no encontrado' });
     }
 
-    // si es string -> ruta relativa (ej: 'comprobantes/archivo.jpg')
-    if (typeof blob === 'string') {
-      const filePath = path.join(__dirname, '../../uploads', blob);
-      console.log(`📁 Enviando archivo por ruta: ${filePath}`);
-      
-      return res.sendFile(filePath, err => {
-        if (err) {
-          console.error('Error al enviar archivo por ruta:', err);
-          return res.status(404).json({ error: 'Archivo no encontrado' });
+    // 🧩 Normalización de blob (por si MySQL devuelve objeto tipo {data: [...]})
+    if (typeof blob === 'object' && blob.data) {
+      blob = Buffer.from(blob.data);
+      console.log('🔁 Normalizado objeto Buffer-like a Buffer');
+    }
+
+    // ✅ Detección del tipo MIME
+    let mimeType = row.comprobante_mime || 'application/octet-stream';
+    if (!mimeType || mimeType === 'application/octet-stream') {
+      try {
+        const detected = await fileTypeFromBuffer(blob);
+        if (detected?.mime) {
+          mimeType = detected.mime;
+          console.log(`🔍 MIME detectado: ${mimeType}`);
         }
-      });
+      } catch {
+        console.warn('⚠️ file-type no pudo detectar MIME');
+      }
     }
 
-    console.log('❌ Formato de comprobante no soportado');
-    return res.status(400).json({ error: 'Formato de comprobante no soportado' });
+    // 🧱 Generar extensión correcta
+    let extension = path.extname(row.comprobante_nombre || '') || '';
+    if (!extension) {
+      const ext = (await fileTypeFromBuffer(blob))?.ext || '';
+      if (ext) extension = '.' + ext;
+    }
+
+    // 📄 Nombre de archivo final
+    let filename = (row.comprobante_nombre || 'comprobante').trim();
+    if (!path.extname(filename)) filename += extension;
+
+    console.log(`📦 Enviando archivo: ${filename}, MIME: ${mimeType}, Tamaño: ${blob.length} bytes`);
+
+    // 🎯 Configurar cabeceras según tipo
+    res.setHeader('Content-Type', mimeType);
+    
+    // Mostrar imágenes y PDFs en el navegador, otros como descarga
+    const isInline =
+      mimeType.startsWith('image/') || mimeType === 'application/pdf';
+    const dispositionType = isInline ? 'inline' : 'attachment';
+
+    res.setHeader(
+      'Content-Disposition',
+      `${dispositionType}; filename="${filename}"`
+    );
+    res.setHeader('Content-Length', blob.length);
+
+    // 🧾 Enviar contenido binario
+    res.status(200).end(blob);
   } catch (err) {
     console.error('💥 Error al enviar comprobante:', err);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res
+      .status(500)
+      .json({ error: 'Error interno del servidor', details: err.message });
   }
 }
+
 
 async function getComprobante(req, res) {
   try {
@@ -127,14 +171,13 @@ async function getComprobante(req, res) {
       return res.status(404).json({ error: 'Comprobante no encontrado' });
     }
 
-    // construimos respuesta con metadatos y URL para la ruta que sirve el archivo
     const url = `${req.protocol}://${req.get('host')}/api/getComprobanteFile/${row.id_confirmacion}`;
-    
     console.log(`✅ Comprobante encontrado: ${row.id_confirmacion}`);
-    
-    // no asumes la columna fecha_confirmacion: devuelve lo que exista
+
+    const { comprobante_blob, comprobante_foto, ...meta } = row;
+
     return res.json({ 
-      ...row, 
+      ...meta,
       url,
       download_url: url
     });
@@ -144,8 +187,19 @@ async function getComprobante(req, res) {
   }
 }
 
+async function welcome(req, res) {
+  try {
+    console.log(`Request received: ${req.method} ${req.path}`);
+    return res.json({ message: 'Welcome to the API' });
+  } catch (err) {
+    console.error('Error in welcome endpoint:', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
 module.exports = {
   createComprobante,
   getComprobante,
   getComprobanteFile,
+  welcome,
 };

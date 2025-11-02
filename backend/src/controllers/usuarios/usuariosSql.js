@@ -68,6 +68,8 @@ async function eliminarPedidoAdmin(id_pedido) {
     await connection.execute('DELETE FROM Notificaciones WHERE id_pedido = ?', [id_pedido]);
     // Elimina los pagos asociados al pedido
     await connection.execute('DELETE FROM Pagos WHERE id_pedido = ?', [id_pedido]);
+    // Elimina las confirmaciones de pago asociadas al pedido
+    await connection.execute('DELETE FROM Confirmaciones_Pago WHERE id_pedido = ?', [id_pedido]);
     // Elimina los productos asociados al pedido
     await connection.execute('DELETE FROM Producto_Pedido WHERE id_pedido = ?', [id_pedido]);
     // Elimina el pedido

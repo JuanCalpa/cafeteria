@@ -9,7 +9,13 @@ const upload = multer({
 });
 
 router.post('/createComprobante', upload.single('comprobante'), comprobanteController.createComprobante);
+
 router.get('/getComprobante/:id_confirmacion', comprobanteController.getComprobante);
+
 router.get('/getComprobanteFile/:id_confirmacion', comprobanteController.getComprobanteFile);
+
+router.get('/comprobante/:id_confirmacion', comprobanteController.getComprobanteFile);
+
+router.get('/welcome', comprobanteController.welcome);
 
 module.exports = router;

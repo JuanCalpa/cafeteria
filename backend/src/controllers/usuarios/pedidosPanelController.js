@@ -123,19 +123,35 @@ async function getPagosPanel(req, res) {
 
     const [pagos] = await connection.execute(`
       SELECT
-        pg.id_pago,
-        pg.id_pedido,
+        cp.id_confirmacion,
+        cp.id_pedido,
         u.nombre AS usuario,
         u.correo,
-        pg.monto,
-        pg.estado,
-        pg.fecha_pago,
-        pg.metodo_pago
-      FROM Pagos pg
-      JOIN Pedidos p ON pg.id_pedido = p.id_pedido
+        cp.comprobante_blob,
+        cp.comprobante_mime,
+        cp.comprobante_nombre
+      FROM Confirmaciones_Pago cp
+      JOIN Pedidos p ON cp.id_pedido = p.id_pedido
       JOIN Usuarios u ON p.id_usuario = u.id_usuario
-      ORDER BY pg.id_pago DESC
+      ORDER BY cp.id_confirmacion DESC
     `);
+
+    // Añadimos los productos a cada pago individualmente
+    for (const pago of pagos) {
+      const [productos] = await connection.execute(`
+        SELECT
+          pr.nombre,
+          d.cantidad,
+          REPLACE(REPLACE(pr.precio, '$', ''), ',', '') AS precio_num,
+          (CAST(REPLACE(REPLACE(pr.precio, '$', ''), ',', '') AS DECIMAL(10,2)) * CAST(d.cantidad AS DECIMAL(10,2))) AS subtotal,
+          d.especificaciones
+        FROM Producto_Pedido d
+        JOIN Productos pr ON d.id_producto = pr.id_producto
+        WHERE d.id_pedido = ?
+      `, [pago.id_pedido]);
+
+      pago.productos = productos;
+    }
 
     await connection.end();
     res.json(pagos);
