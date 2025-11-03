@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'menu_page.dart'; // Asegúrate de importar el MenuPage
 import 'orders_page.dart'; // Importa la página de pedidos
+import 'history_page.dart'; // Importa la página de historial
 import '../providers/auth_provider.dart';
 import '../pages/login_page.dart';
 
@@ -104,7 +105,7 @@ class _HomePageState extends State<HomePage> {
             ),
             onTap: () {
               Navigator.pop(context);
-              // Navegar a historial (puedes implementarlo después)
+              _navigateToHistoryPage(context);
             },
           ),
           const Divider(color: Color(0xFF8D6E63)),
@@ -144,8 +145,16 @@ class _HomePageState extends State<HomePage> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Título principal grande y bonito
+          _buildMainTitle(),
+          const SizedBox(height: 30),
+
+          // Imagen bonita centrada
+          _buildHeroImage(),
+          const SizedBox(height: 40),
+
           // Banner de bienvenida
           _buildWelcomeCard(),
           const SizedBox(height: 25),
@@ -156,16 +165,15 @@ class _HomePageState extends State<HomePage> {
 
           // Acciones rápidas
           _buildQuickActions(),
-          const SizedBox(height: 25),
-
-          // Promociones del día
-          _buildDailyPromotions(),
         ],
       ),
     );
   }
 
   Widget _buildWelcomeCard() {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final userName = authProvider.user?.nombre ?? 'Usuario';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -187,9 +195,9 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '¡Bienvenido a la Cafetería!',
-            style: TextStyle(
+          Text(
+            '¡Bienvenido, $userName!',
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -356,7 +364,7 @@ class _HomePageState extends State<HomePage> {
                 icon: Icons.history,
                 label: 'Historial',
                 onTap: () {
-                  // Navegar a historial (puedes implementarlo después)
+                  _navigateToHistoryPage(context);
                 },
               ),
             ),
@@ -512,6 +520,111 @@ class _HomePageState extends State<HomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const OrdersPage()),
+    );
+  }
+
+  // Método para navegar a HistoryPage
+  void _navigateToHistoryPage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const HistoryPage()),
+    );
+  }
+
+  Widget _buildMainTitle() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+      child: Column(
+        children: [
+          Text(
+            'Cafetería',
+            style: TextStyle(
+              color: const Color(0xFF5D4037),
+              fontSize: 42,
+              fontWeight: FontWeight.bold,
+              shadows: [
+                Shadow(
+                  color: Colors.brown.withOpacity(0.3),
+                  offset: const Offset(2, 2),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'U. Mariana',
+            style: TextStyle(
+              color: const Color(0xFF8D6E63),
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: 80,
+            height: 4,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF8D6E63), Color(0xFF6D4C41)],
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroImage() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      height: 280,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.brown.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Image.asset(
+          'assets/Cappuccino.jpg',
+          width: double.infinity,
+          height: double.infinity,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDecorativeIcon(IconData icon) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.8),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.brown.withOpacity(0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Icon(
+        icon,
+        size: 24,
+        color: const Color(0xFF8D6E63),
+      ),
     );
   }
 }

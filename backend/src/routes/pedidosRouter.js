@@ -23,4 +23,7 @@ router.post('/crearPedidoManual', verificarRol(['administrador']), pedidosContro
 // Crear pedido desde la app móvil
 router.post('/crearPedidoDesdeApp', pedidosController.crearPedidoDesdeApp);
 
+// Consultar pedidos del usuario autenticado
+router.post('/consultarPedidos', pedidosController.consultarPedidosUsuario);
+
 module.exports = router;

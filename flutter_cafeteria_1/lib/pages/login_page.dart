@@ -28,30 +28,52 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Logo/Icono decorativo
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF8D6E63), Color(0xFF6D4C41)],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.brown.withOpacity(0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.coffee,
+                    size: 50,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
                 // Título
                 const Text(
-                  'Login',
+                  'Cafetería U. Mariana',
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF5D4037), // Café oscuro
                   ),
                 ),
-                const SizedBox(height: 40),
-
-                // Mostrar mensaje de error si existe
-                if (authProvider.errorMessage != null)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      authProvider.errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Iniciar Sesión',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFF8D6E63),
+                    fontWeight: FontWeight.w500,
                   ),
+                ),
+                const SizedBox(height: 40),
 
                 const SizedBox(height: 20),
 
@@ -161,6 +183,74 @@ class _LoginPageState extends State<LoginPage> {
                                 await authProvider.login(email, password);
                             if (success) {
                               Navigator.pushReplacementNamed(context, '/home');
+                            } else {
+                              // Mostrar mensaje de error específico
+                              String errorMessage = 'Error al iniciar sesión';
+                              if (authProvider.errorMessage != null) {
+                                if (authProvider.errorMessage!
+                                        .contains('Credenciales inválidas') ||
+                                    authProvider.errorMessage!
+                                        .contains('credenciales')) {
+                                  errorMessage =
+                                      'Usuario o contraseña incorrectos';
+                                } else if (authProvider.errorMessage!
+                                        .contains('correo') ||
+                                    authProvider.errorMessage!
+                                        .contains('email')) {
+                                  errorMessage =
+                                      'Correo electrónico incorrecto';
+                                } else if (authProvider.errorMessage!
+                                        .contains('contraseña') ||
+                                    authProvider.errorMessage!
+                                        .contains('password')) {
+                                  errorMessage = 'Contraseña incorrecta';
+                                } else if (authProvider.errorMessage!
+                                    .contains('Usuario no encontrado')) {
+                                  errorMessage =
+                                      'Usuario no encontrado. Verifica tu correo electrónico';
+                                } else {
+                                  errorMessage = authProvider.errorMessage!;
+                                }
+                              }
+
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text(
+                                      'Error de Inicio de Sesión',
+                                      style: TextStyle(
+                                        color: Color(0xFF5D4037),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    content: Text(
+                                      errorMessage,
+                                      style: const TextStyle(
+                                        color: Color(0xFF8D6E63),
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text(
+                                          'Entendido',
+                                          style: TextStyle(
+                                            color: Color(0xFF6D4C41),
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    backgroundColor: const Color(0xFFFDF5E6),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  );
+                                },
+                              );
                             }
                           },
                     style: ElevatedButton.styleFrom(

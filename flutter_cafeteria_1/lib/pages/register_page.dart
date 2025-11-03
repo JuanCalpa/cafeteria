@@ -44,30 +44,52 @@ class _RegisterPageState extends State<RegisterPage> {
         padding: const EdgeInsets.all(24.0),
         child: ListView(
           children: [
+            // Logo/Icono decorativo
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF8D6E63), Color(0xFF6D4C41)],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.brown.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.person_add,
+                size: 40,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 20),
+
             // Título
             const Text(
-              'Crear una cuenta',
+              'Cafetería U. Mariana',
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF5D4037), // Café oscuro
               ),
             ),
-            const SizedBox(height: 30),
-
-            // Mostrar mensaje de error si existe
-            if (authProvider.errorMessage != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  authProvider.errorMessage!,
-                  style: const TextStyle(color: Colors.red),
-                ),
+            const SizedBox(height: 8),
+            const Text(
+              'Crear una cuenta',
+              style: TextStyle(
+                fontSize: 18,
+                color: Color(0xFF8D6E63),
+                fontWeight: FontWeight.w500,
               ),
+            ),
+            const SizedBox(height: 30),
 
             const SizedBox(height: 20),
 
@@ -197,12 +219,73 @@ class _RegisterPageState extends State<RegisterPage> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Usuario registrado exitosamente'),
+                              backgroundColor: Colors.green,
                             ),
                           );
                           Navigator.pop(context);
                         } else {
-                          // El mensaje de error ya se maneja en el AuthProvider
-                          // No necesitamos mostrar un SnackBar adicional aquí
+                          // Mostrar mensaje de error específico
+                          String errorMessage = 'Error al registrar usuario';
+                          if (authProvider.errorMessage != null) {
+                            if (authProvider.errorMessage!.contains('correo') ||
+                                authProvider.errorMessage!.contains('email') ||
+                                authProvider.errorMessage!
+                                    .contains('ya existe')) {
+                              errorMessage =
+                                  'Este correo electrónico ya está registrado';
+                            } else if (authProvider.errorMessage!
+                                    .contains('contraseña') ||
+                                authProvider.errorMessage!
+                                    .contains('password')) {
+                              errorMessage =
+                                  'La contraseña debe tener al menos 6 caracteres';
+                            } else if (authProvider.errorMessage!
+                                    .contains('nombre') ||
+                                authProvider.errorMessage!.contains('name')) {
+                              errorMessage = 'El nombre es obligatorio';
+                            } else {
+                              errorMessage = authProvider.errorMessage!;
+                            }
+                          }
+
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text(
+                                  'Error de Registro',
+                                  style: TextStyle(
+                                    color: Color(0xFF5D4037),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                content: Text(
+                                  errorMessage,
+                                  style: const TextStyle(
+                                    color: Color(0xFF8D6E63),
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text(
+                                      'Entendido',
+                                      style: TextStyle(
+                                        color: Color(0xFF6D4C41),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                backgroundColor: const Color(0xFFFDF5E6),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              );
+                            },
+                          );
                         }
                       },
                 style: ElevatedButton.styleFrom(

@@ -65,17 +65,17 @@ async function createComprobante(req, res) {
       originalName
     );
 
-    // 🔄 Actualizar el estado del pedido a 'confirmado'
-    console.log(`🔄 Actualizando estado del pedido ${id_pedido} a 'confirmado'`);
+    // 🔄 Actualizar el estado del pedido a 'pendiente' (el pedido se mantiene pendiente hasta que el admin lo confirme)
+    console.log(`🔄 Actualizando estado del pedido ${id_pedido} a 'pendiente'`);
     const connect = require('../../database/sqlConnection');
     const connection = await connect();
-    await connection.execute('UPDATE Pedidos SET estado = ? WHERE id_pedido = ?', ['confirmado', id_pedido]);
+    await connection.execute('UPDATE Pedidos SET estado = ? WHERE id_pedido = ?', ['pendiente', id_pedido]);
     await connection.end();
 
     console.log(`✅ Comprobante creado exitosamente. ID: ${result.insertId}, Pedido: ${id_pedido}`);
     
-    return res.status(201).json({ 
-      message: 'Comprobante creado y pedido confirmado', 
+    return res.status(201).json({
+      message: 'Comprobante creado y pedido pendiente de confirmación',
       id: result.insertId,
       id_pedido: parseInt(id_pedido)
     });

@@ -228,6 +228,55 @@ async function crearPedidoDesdeApp(req, res) {
   }
 }
 
+// Consultar pedidos del usuario autenticado
+async function consultarPedidosUsuario(req, res) {
+  const { id_usuario } = req.body;
+
+  if (!id_usuario) {
+    return res.status(400).json({ error: 'ID de usuario requerido' });
+  }
+
+  try {
+    const connection = await connect();
+
+    // Obtener pedidos del usuario con productos incluidos
+    const [pedidos] = await connection.execute(`
+      SELECT
+        p.id_pedido,
+        p.fecha_pedido,
+        p.estado,
+        IFNULL(SUM(CAST(REPLACE(REPLACE(pr.precio, '$', ''), ',', '') AS DECIMAL(10,2)) * CAST(pp.cantidad AS DECIMAL(10,2))), 0) AS total,
+        GROUP_CONCAT(
+          JSON_OBJECT(
+            'nombre', pr.nombre,
+            'precio', pr.precio,
+            'cantidad', pp.cantidad,
+            'subtotal', CAST(REPLACE(REPLACE(pr.precio, '$', ''), ',', '') AS DECIMAL(10,2)) * CAST(pp.cantidad AS DECIMAL(10,2))
+          )
+        ) AS productos
+      FROM Pedidos p
+      LEFT JOIN Producto_Pedido pp ON p.id_pedido = pp.id_pedido
+      LEFT JOIN Productos pr ON pp.id_producto = pr.id_producto
+      WHERE p.id_usuario = ?
+      GROUP BY p.id_pedido, p.fecha_pedido, p.estado
+      ORDER BY p.fecha_pedido DESC
+    `, [id_usuario]);
+
+    await connection.end();
+
+    // Parsear los productos JSON
+    const pedidosFormateados = pedidos.map(pedido => ({
+      ...pedido,
+      productos: pedido.productos ? JSON.parse(`[${pedido.productos}]`) : []
+    }));
+
+    res.json(pedidosFormateados);
+  } catch (error) {
+    console.error('Error al consultar pedidos del usuario:', error);
+    res.status(500).json({ error: 'Error al consultar pedidos' });
+  }
+}
+
 module.exports = {
   getAllPedidos,
   getPedidoById,
@@ -235,5 +284,6 @@ module.exports = {
   cancelarPedido,
   crearPedidoManual,
   getPedidosCocina,
-  crearPedidoDesdeApp
+  crearPedidoDesdeApp,
+  consultarPedidosUsuario
 };

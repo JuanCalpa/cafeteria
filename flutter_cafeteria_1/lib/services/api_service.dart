@@ -240,6 +240,45 @@ class ApiService {
     }
   }
 
+  // Consultar pedidos del usuario
+  Future<List<Map<String, dynamic>>> consultarPedidos(int idUsuario) async {
+    try {
+      print('🔄 Consultando pedidos para usuario: $idUsuario');
+
+      final response = await client.post(
+        Uri.parse('$baseUrl/api/consultarPedidos'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'id_usuario': idUsuario,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('✅ Respuesta del servidor: $data');
+
+        // Verificar si la respuesta es un array directo o está envuelta
+        if (data is List) {
+          print('✅ Pedidos obtenidos (array directo): ${data.length}');
+          return List<Map<String, dynamic>>.from(data);
+        } else if (data is Map && data.containsKey('pedidos')) {
+          print('✅ Pedidos obtenidos (envueltos): ${data['pedidos'].length}');
+          return List<Map<String, dynamic>>.from(data['pedidos']);
+        } else {
+          print('❌ Formato de respuesta inesperado: $data');
+          throw Exception('Unexpected response format');
+        }
+      } else {
+        print(
+            '❌ Error consultando pedidos: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to fetch orders: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error consultando pedidos: $e');
+      throw Exception('Error fetching orders: $e');
+    }
+  }
+
   // Subir comprobante de pago - VERSIÓN MEJORADA
   Future<Map<String, dynamic>> subirComprobante(
       int idPedido, int idUsuario, String filePath) async {

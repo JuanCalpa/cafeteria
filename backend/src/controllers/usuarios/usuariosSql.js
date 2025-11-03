@@ -20,15 +20,42 @@ async function crearPedido(id_usuario, productos, estado = 'pendiente') {
 
 async function consultarPedidos(id_usuario) {
     const connection = await connect();
-    const [pedidos] = await connection.execute(
-        `SELECT p.*, d.id_producto, d.cantidad, d.especificaciones
+    const [rows] = await connection.execute(
+        `SELECT p.*, d.id_producto, d.cantidad, d.especificaciones, prod.nombre as nombre_producto
          FROM Pedidos p
-         LEFT JOIN 
+         LEFT JOIN
          Producto_Pedido d ON p.id_pedido = d.id_pedido
+         LEFT JOIN
+         Productos prod ON d.id_producto = prod.id_producto
          WHERE p.id_usuario = ?`,
         [id_usuario]
     );
     await connection.end();
+
+    // Agrupar por id_pedido
+    const pedidosMap = {};
+    rows.forEach(row => {
+        const id_pedido = row.id_pedido;
+        if (!pedidosMap[id_pedido]) {
+            pedidosMap[id_pedido] = {
+                id_pedido: row.id_pedido,
+                id_usuario: row.id_usuario,
+                estado: row.estado,
+                fecha_pedido: row.fecha_pedido,
+                productos: []
+            };
+        }
+        if (row.id_producto) {
+            pedidosMap[id_pedido].productos.push({
+                id_producto: row.id_producto,
+                nombre: row.nombre_producto,
+                cantidad: row.cantidad,
+                especificaciones: row.especificaciones
+            });
+        }
+    });
+
+    const pedidos = Object.values(pedidosMap);
     return pedidos;
 }
 
