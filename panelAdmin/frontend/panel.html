@@ -185,6 +185,51 @@
     </div>
   </div>
 
+  <!-- Modal Editar Producto -->
+  <div id="modalEditarProducto" class="modal">
+    <div class="modal-box">
+      <span class="close" id="cerrarModalEditarProducto">&times;</span>
+      <h2>Editar Producto</h2>
+      <form id="formEditarProducto">
+        <input type="hidden" id="editarIdProducto">
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label for="editarCategoria">Categoría:</label>
+            <select id="editarCategoria" required>
+              <option value="">Selecciona categoría</option>
+            </select>
+          </div>
+          <div style="flex: 1;">
+            <label for="editarNombre">Nombre:</label>
+            <input type="text" id="editarNombre" placeholder="Ej: Café" required>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label for="editarDescripcion">Descripción:</label>
+            <input type="text" id="editarDescripcion" placeholder="Ej: Café negro">
+          </div>
+          <div style="flex: 1;">
+            <label for="editarPrecio">Precio:</label>
+            <input type="text" id="editarPrecio" placeholder="Ej: $2,500" required>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label for="editarDisponibilidad">Disponibilidad:</label>
+            <select id="editarDisponibilidad" required>
+              <option value="TRUE">Disponible</option>
+              <option value="FALSE">No disponible</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-editar">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal de Confirmación para Editar Pedido -->
   <div id="modalConfirmEdit" class="modal">
     <div class="modal-box">

@@ -3,6 +3,7 @@ const modales = {
   editar: document.getElementById("modalEditar"),
   eliminar: document.getElementById("modalEliminar"),
   crear: document.getElementById("modalCrear"),
+  editarProducto: document.getElementById("modalEditarProducto"),
   confirmEdit: document.getElementById("modalConfirmEdit"),
   confirmPago: document.getElementById("modalConfirmPago"),
   confirmLogout: document.getElementById("modalConfirmLogout")
@@ -189,7 +190,7 @@ async function cargarCategorias() {
     selects.forEach(select => {
       select.innerHTML = '<option value="">Selecciona categoría</option>';
       categorias.forEach(cat => {
-        select.innerHTML += `<option value="${cat}">${cat}</option>`;
+        select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
       });
     });
   } catch (err) {
@@ -443,27 +444,103 @@ async function cargarProductos() {
 }
 
 // =================== EDITAR PRODUCTO ===================
-function editarProducto(id) {
-  // Implementar modal para editar producto
-  alert("Funcionalidad de editar producto próximamente");
+async function editarProducto(id) {
+  try {
+    const res = await fetch(`http://localhost:3000/api/productoById?id_producto=${id}`, { credentials: "include" });
+    if (!res.ok) throw new Error("Error al obtener el producto");
+
+    const producto = await res.json();
+
+    // Llenar el modal con los datos del producto
+    document.getElementById("editarIdProducto").value = producto.id_producto;
+    document.getElementById("editarNombre").value = producto.nombre;
+    document.getElementById("editarDescripcion").value = producto.descripcion || "";
+    document.getElementById("editarPrecio").value = producto.precio;
+    document.getElementById("editarDisponibilidad").value = producto.disponibilidad;
+
+    // Cargar categorías y seleccionar la actual
+    await cargarCategoriasEditar(producto.categoria);
+
+    modales.editarProducto.style.display = "flex";
+  } catch (err) {
+    console.error("Error al cargar producto para editar:", err);
+    alert("Error al cargar el producto");
+  }
 }
+
+async function cargarCategoriasEditar(categoriaSeleccionada) {
+  try {
+    const res = await fetch("http://localhost:3000/api/categories");
+    if (!res.ok) throw new Error("Error al cargar categorías");
+    const categorias = await res.json();
+    const select = document.getElementById("editarCategoria");
+    select.innerHTML = '<option value="">Selecciona categoría</option>';
+    categorias.forEach(cat => {
+      const option = document.createElement("option");
+      option.value = cat.name;
+      option.textContent = cat.name;
+      if (cat.name === categoriaSeleccionada) option.selected = true;
+      select.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Error al cargar categorías para editar:", err);
+  }
+}
+
+document.getElementById("formEditarProducto").addEventListener("submit", async e => {
+  e.preventDefault();
+  const id = document.getElementById("editarIdProducto").value;
+  const nombre = document.getElementById("editarNombre").value;
+  const descripcion = document.getElementById("editarDescripcion").value;
+  const precio = document.getElementById("editarPrecio").value;
+  const disponibilidad = document.getElementById("editarDisponibilidad").value;
+  const categoria = document.getElementById("editarCategoria").value;
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/updateProducto/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ nombre, descripcion, precio, disponibilidad, categoria })
+    });
+
+    if (!res.ok) throw new Error("Error al actualizar producto");
+
+    modales.editarProducto.style.display = "none";
+    cargarProductos();
+  } catch (err) {
+    console.error("Error al actualizar producto:", err);
+    alert("Error al actualizar el producto");
+  }
+});
 
 // =================== ELIMINAR PRODUCTO ===================
 function eliminarProducto(id) {
-  if (confirm(`¿Estás seguro de eliminar el producto #${id}?`)) {
-    fetch(`http://localhost:3000/api/deleteProducto/${id}`, {
-      method: "DELETE",
-      credentials: "include"
-    })
-    .then(res => {
-      if (res.ok) {
-        cargarProductos();
-      } else {
-        alert("Error al eliminar producto");
-      }
-    })
-    .catch(err => console.error(err));
-  }
+  // Mostrar modal de confirmación
+  document.getElementById("confirmPagoText").textContent = `¿Estás seguro de eliminar el producto #${id}? Esta acción no se puede deshacer.`;
+  modales.confirmPago.style.display = "flex";
+
+  // Configurar botones de confirmación
+  document.getElementById("btnConfirmPagoYes").onclick = async () => {
+    modales.confirmPago.style.display = "none";
+    try {
+      const res = await fetch(`http://localhost:3000/api/deleteProducto/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+
+      if (!res.ok) throw new Error("Error al eliminar producto");
+
+      cargarProductos();
+    } catch (err) {
+      console.error("Error al eliminar producto:", err);
+      alert("Error al eliminar el producto");
+    }
+  };
+
+  document.getElementById("btnConfirmPagoNo").onclick = () => {
+    modales.confirmPago.style.display = "none";
+  };
 }
 
 // =================== NAVEGACIÓN ENTRE PESTAÑAS ===================
