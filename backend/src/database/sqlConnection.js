@@ -2,10 +2,10 @@ const mysql = require('mysql2/promise');
 
 async function connect() {
   return await mysql.createConnection({
-    host: "trolley.proxy.rlwy.net",
-    port: 27281 ,
+    host: "tramway.proxy.rlwy.net",
+    port: 40068 ,
     user: "root",
-    password: "edcvCYDlCsHcErofExvPvyNrCTojjNnG",
+    password: "AHqRqlXwHWnCZSgOafguqTqvNbmiwEhJ",
     database: "railway"
   });
 }
