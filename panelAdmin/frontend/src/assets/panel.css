@@ -70,6 +70,7 @@
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 3px solid #8d6e63;
+
 }
 
 .panel-header h1 {
@@ -216,6 +217,7 @@
 .btn-nuevo {
   background: linear-gradient(135deg, #8d6e63 0%, #6d4c41 100%);
   color: #fff;
+  margin-left: 40px ;
 }
 
 .btn-ver {
