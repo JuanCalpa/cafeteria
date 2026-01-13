@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const verificarRol = require('./intermedios/verificarRol');
 const comprobanteController = require('../controllers/comprobante/comprobanteController');
 
 const router = express.Router();
@@ -12,7 +13,7 @@ router.post('/createComprobante', upload.single('comprobante'), comprobanteContr
 
 router.get('/getComprobante/:id_confirmacion', comprobanteController.getComprobante);
 
-router.get('/getComprobanteFile/:id_confirmacion', comprobanteController.getComprobanteFile);
+router.get('/getComprobanteFile/:id_confirmacion', verificarRol(['administrador']), comprobanteController.getComprobanteFile);
 
 router.get('/comprobante/:id_confirmacion', comprobanteController.getComprobanteFile);
 

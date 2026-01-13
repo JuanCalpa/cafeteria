@@ -138,9 +138,19 @@ const PanelAdmin = () => {
   };
 
   // =================== PAGOS ===================
-  const verComprobante = (id_confirmacion) => {
-    const url = pagosAPI.getComprobante(id_confirmacion);
-    window.open(url, '_blank');
+  const verComprobante = async (id_confirmacion) => {
+    try {
+      const res = await fetch(`/api/getComprobanteFile/${id_confirmacion}`, {
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error("No se pudo obtener el comprobante");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error("Error al ver comprobante:", err);
+      alert("Error al cargar el comprobante");
+    }
   };
 
   const marcarEntregado = (id_pedido) => {
