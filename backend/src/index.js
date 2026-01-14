@@ -26,7 +26,7 @@ app.use(session({
 
 // CORS - Configuración para desarrollo
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://10.0.2.2:3000'],
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://10.0.2.2:3000', 'http://192.168.100.80:3000'],
   credentials: true
 }));
 

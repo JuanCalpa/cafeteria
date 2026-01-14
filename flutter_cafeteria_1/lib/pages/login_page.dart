@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'register_page.dart';
 import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,12 +17,81 @@ class _LoginPageState extends State<LoginPage> {
   bool _rememberMe = false;
   bool _isPasswordVisible = false;
 
+  void _showServerConfigDialog() {
+    final TextEditingController _serverController =
+        TextEditingController(text: ApiService.baseUrl);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Configurar Servidor',
+            style: TextStyle(
+              color: Color(0xFF5D4037),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: TextField(
+            controller: _serverController,
+            decoration: const InputDecoration(
+              labelText: 'URL del Servidor',
+              hintText: 'http://192.168.1.100:3000',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Color(0xFF8D6E63)),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newUrl = _serverController.text.trim();
+                if (newUrl.isNotEmpty) {
+                  ApiService.setBaseUrl(newUrl);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Servidor configurado: $newUrl'),
+                      backgroundColor: const Color(0xFF6D4C41),
+                    ),
+                  );
+                }
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6D4C41),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Guardar'),
+            ),
+          ],
+          backgroundColor: const Color(0xFFFDF5E6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFDF5E6), // Color crema claro
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showServerConfigDialog,
+        backgroundColor: const Color(0xFF6D4C41),
+        child: const Icon(Icons.settings, color: Colors.white),
+        tooltip: 'Configurar Servidor',
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Center(

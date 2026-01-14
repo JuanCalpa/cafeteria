@@ -2,14 +2,11 @@ import 'package:flutter/foundation.dart' hide Category;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/category_model.dart';
+import '../services/api_service.dart';
 
 class MenuProvider with ChangeNotifier {
-  // PRUEBA CON DIFERENTES URLs:
-  final String _baseUrl = 'http://10.0.2.2:3000'; // Para emulador Android
-  // Alternativas si no funciona:
-  // final String _baseUrl = 'http://127.0.0.1:3000'; // Para desarrollo local
-  // final String _baseUrl = 'http://localhost:3000'; // Para desarrollo local
-  // final String _baseUrl = 'http://0.0.0.0:3000'; // Para servidor
+  // Usar la misma URL que ApiService para consistencia
+  final String _baseUrl = ApiService.baseUrl;
 
   List<Category> _categories = [];
   List<Product> _allProducts = [];

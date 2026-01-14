@@ -5,15 +5,21 @@ import 'package:http/http.dart' as http;
 import '../models/category_model.dart';
 
 class ApiService {
-  // ⚠️ IMPORTANTE: Esta URL la cambiarás después de desplegar en Railway
-  static const String baseUrl = 'http://10.0.2.2:3000'; // Para emulador Android
-  // static const String baseUrl =
-  //     'http://localhost:3000'; // Para desarrollo local
+  // ⚠️ IMPORTANTE: Esta URL se puede configurar dinámicamente
+  // static const String baseUrl = 'http://10.0.2.2:3000'; // Para emulador Android
+  static String baseUrl =
+      'http://192.168.100.80:3000'; // Para dispositivos reales Android (configurable)
   // static const String baseUrl = 'https://tu-backend.railway.app'; // Para producción
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
   ApiService._internal();
+
+  // Método para cambiar la URL base dinámicamente
+  static void setBaseUrl(String newUrl) {
+    baseUrl = newUrl;
+    print('🔄 URL base cambiada a: $baseUrl');
+  }
 
   final http.Client client = http.Client();
 
@@ -109,14 +115,16 @@ class ApiService {
     try {
       print('🔄 Iniciando sesión con: $correo');
 
-      final response = await client.post(
-        Uri.parse('$baseUrl/api/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'correo': correo,
-          'contrasena': contrasena,
-        }),
-      );
+      final response = await client
+          .post(
+            Uri.parse('$baseUrl/api/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'correo': correo,
+              'contrasena': contrasena,
+            }),
+          )
+          .timeout(Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

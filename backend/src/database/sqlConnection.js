@@ -6,7 +6,10 @@ async function connect() {
     port: 40068 ,
     user: "root",
     password: "AHqRqlXwHWnCZSgOafguqTqvNbmiwEhJ",
-    database: "railway"
+    database: "railway",
+    connectTimeout: 60000, // 60 segundos
+    acquireTimeout: 60000,
+    timeout: 60000
   });
 }
 
