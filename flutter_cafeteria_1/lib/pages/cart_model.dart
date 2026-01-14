@@ -6,6 +6,7 @@ class CartItem {
   final double price;
   final IconData icon;
   int quantity;
+  String specifications;
 
   CartItem({
     required this.id,
@@ -13,6 +14,7 @@ class CartItem {
     required this.price,
     required this.icon,
     this.quantity = 1,
+    this.specifications = '',
   });
 
   Map<String, dynamic> toMap() {
@@ -22,6 +24,7 @@ class CartItem {
       'price': price,
       'icon': icon.codePoint,
       'quantity': quantity,
+      'specifications': specifications,
     };
   }
 
@@ -32,6 +35,7 @@ class CartItem {
       price: map['price'],
       icon: IconData(map['icon'], fontFamily: 'MaterialIcons'),
       quantity: map['quantity'],
+      specifications: map['specifications'] ?? '',
     );
   }
 }

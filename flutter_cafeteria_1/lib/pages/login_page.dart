@@ -14,6 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _rememberMe = false;
+  bool _isPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -123,17 +124,31 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   child: TextField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Password',
-                      labelStyle: TextStyle(color: Color(0xFF8D6E63)),
+                      labelStyle: const TextStyle(color: Color(0xFF8D6E63)),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
+                      contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 16,
                       ),
-                      prefixIcon: Icon(Icons.lock, color: Color(0xFF8D6E63)),
+                      prefixIcon:
+                          const Icon(Icons.lock, color: Color(0xFF8D6E63)),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: const Color(0xFF8D6E63),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
                     ),
-                    obscureText: true,
+                    obscureText: !_isPasswordVisible,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -185,33 +200,8 @@ class _LoginPageState extends State<LoginPage> {
                               Navigator.pushReplacementNamed(context, '/home');
                             } else {
                               // Mostrar mensaje de error específico
-                              String errorMessage = 'Error al iniciar sesión';
-                              if (authProvider.errorMessage != null) {
-                                if (authProvider.errorMessage!
-                                        .contains('Credenciales inválidas') ||
-                                    authProvider.errorMessage!
-                                        .contains('credenciales')) {
-                                  errorMessage =
-                                      'Usuario o contraseña incorrectos';
-                                } else if (authProvider.errorMessage!
-                                        .contains('correo') ||
-                                    authProvider.errorMessage!
-                                        .contains('email')) {
-                                  errorMessage =
-                                      'Correo electrónico incorrecto';
-                                } else if (authProvider.errorMessage!
-                                        .contains('contraseña') ||
-                                    authProvider.errorMessage!
-                                        .contains('password')) {
-                                  errorMessage = 'Contraseña incorrecta';
-                                } else if (authProvider.errorMessage!
-                                    .contains('Usuario no encontrado')) {
-                                  errorMessage =
-                                      'Usuario no encontrado. Verifica tu correo electrónico';
-                                } else {
-                                  errorMessage = authProvider.errorMessage!;
-                                }
-                              }
+                              String errorMessage =
+                                  'Usuario o contraseña incorrectos';
 
                               showDialog(
                                 context: context,

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'menu_page.dart'; // Asegúrate de importar el MenuPage
 import 'orders_page.dart'; // Importa la página de pedidos
 import 'history_page.dart'; // Importa la página de historial
+import 'profile_page.dart'; // Importa la página de perfil
 import '../providers/auth_provider.dart';
 import '../pages/login_page.dart';
 
@@ -94,7 +95,7 @@ class _HomePageState extends State<HomePage> {
             ),
             onTap: () {
               Navigator.pop(context);
-              _navigateToOrdersPage(context);
+              _navigateToHistoryPage(context);
             },
           ),
           ListTile(
@@ -239,34 +240,41 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 15),
-        _buildFeatureCard(
-          icon: Icons.menu_book,
-          title: 'Ver Menú Completo',
-          description:
-              'Explora nuestra variedad de bebidas, snacks y comidas disponibles',
-          color: const Color(0xFFD7CCC8),
-        ),
-        const SizedBox(height: 12),
-        _buildFeatureCard(
-          icon: Icons.shopping_cart,
-          title: 'Realizar Pedidos',
-          description: 'Ordena tus productos favoritos y programa la recogida',
-          color: const Color(0xFFE6D7C9),
-        ),
-        const SizedBox(height: 12),
-        _buildFeatureCard(
-          icon: Icons.access_time,
-          title: 'Ahorrar Tiempo',
-          description: 'Evita filas ordenando desde tu celular',
-          color: const Color(0xFFF0E6D2),
-        ),
-        const SizedBox(height: 12),
-        _buildFeatureCard(
-          icon: Icons.local_offer,
-          title: 'Promociones Exclusivas',
-          description: 'Accede a descuentos especiales para estudiantes',
-          color: const Color(0xFFD7CCC8),
+        const SizedBox(height: 20),
+        GridView.count(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _buildFeatureCard(
+              icon: Icons.menu_book,
+              title: 'Ver Menú Completo',
+              description:
+                  'Explora nuestra variedad de bebidas, snacks y comidas disponibles',
+              color: const Color(0xFFD7CCC8),
+            ),
+            _buildFeatureCard(
+              icon: Icons.shopping_cart,
+              title: 'Realizar Pedidos',
+              description:
+                  'Ordena tus productos favoritos y programa la recogida',
+              color: const Color(0xFFE6D7C9),
+            ),
+            _buildFeatureCard(
+              icon: Icons.access_time,
+              title: 'Ahorrar Tiempo',
+              description: 'Evita filas ordenando desde tu celular',
+              color: const Color(0xFFF0E6D2),
+            ),
+            _buildFeatureCard(
+              icon: Icons.star,
+              title: 'Calidad Garantizada',
+              description: 'Productos frescos y de la mejor calidad',
+              color: const Color(0xFFD7CCC8),
+            ),
+          ],
         ),
       ],
     );
@@ -279,44 +287,40 @@ class _HomePageState extends State<HomePage> {
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF8D6E63).withOpacity(0.3)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: const BoxDecoration(
               color: Color(0xFF6D4C41),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF5D4037),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: Color(0xFF8D6E63),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 8),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF5D4037),
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFF8D6E63),
+              fontSize: 11,
             ),
           ),
         ],
@@ -354,7 +358,7 @@ class _HomePageState extends State<HomePage> {
                 icon: Icons.shopping_bag,
                 label: 'Pedidos',
                 onTap: () {
-                  _navigateToOrdersPage(context);
+                  _navigateToHistoryPage(context);
                 },
               ),
             ),
@@ -412,65 +416,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildDailyPromotions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Promociones del Día',
-          style: TextStyle(
-            color: Color(0xFF5D4037),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 15),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE6D7C9),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF8D6E63).withOpacity(0.3)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6D4C41),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.local_offer, color: Colors.white),
-              ),
-              const SizedBox(width: 15),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '2x1 en Cafés Especiales',
-                      style: TextStyle(
-                        color: Color(0xFF5D4037),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Hoy hasta las 12:00 pm',
-                      style: TextStyle(color: Color(0xFF8D6E63), fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildBottomNavigationBar() {
     return BottomNavigationBar(
       currentIndex: _currentIndex,
@@ -479,12 +424,17 @@ class _HomePageState extends State<HomePage> {
           _currentIndex = index;
         });
         // Navegar según el índice seleccionado
-        if (index == 1) {
+        if (index == 0) {
+          // Índice 0 es el Inicio (ya estamos aquí)
+        } else if (index == 1) {
           // Índice 1 es el Menú
           _navigateToMenuPage(context);
         } else if (index == 2) {
           // Índice 2 es Pedidos
-          _navigateToOrdersPage(context);
+          _navigateToHistoryPage(context);
+        } else if (index == 3) {
+          // Índice 3 es Perfil
+          _navigateToProfilePage(context);
         }
       },
       backgroundColor: Colors.white,
@@ -528,6 +478,14 @@ class _HomePageState extends State<HomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const HistoryPage()),
+    );
+  }
+
+  // Método para navegar a ProfilePage
+  void _navigateToProfilePage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ProfilePage()),
     );
   }
 

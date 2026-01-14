@@ -42,6 +42,11 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateSpecifications(int index, String specifications) {
+    _cartItems[index].specifications = specifications;
+    notifyListeners();
+  }
+
   void clearCart() {
     _cartItems.clear();
     notifyListeners();

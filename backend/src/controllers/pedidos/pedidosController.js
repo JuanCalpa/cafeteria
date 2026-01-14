@@ -148,8 +148,8 @@ async function crearPedidoManual(req, res) {
     // Insertar los productos del pedido
     for (const p of productos) {
       await connection.execute(
-        'INSERT INTO Producto_Pedido (id_pedido, id_producto, cantidad) VALUES (?, ?, ?)',
-        [id_pedido, p.id_producto, p.cantidad]
+        'INSERT INTO Producto_Pedido (id_pedido, id_producto, cantidad, especificaciones) VALUES (?, ?, ?, ?)',
+        [id_pedido, p.id_producto, p.cantidad, p.especificaciones || null]
       );
     }
 

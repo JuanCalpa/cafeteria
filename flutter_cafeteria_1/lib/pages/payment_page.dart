@@ -18,6 +18,22 @@ class _PaymentPageState extends State<PaymentPage> {
   String? _selectedPaymentMethod;
   final ImagePicker _picker = ImagePicker();
   bool _isPickingImage = false;
+  final Map<int, TextEditingController> _specControllers = {};
+
+  @override
+  void dispose() {
+    for (var controller in _specControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  TextEditingController _getController(int index, String initialText) {
+    if (!_specControllers.containsKey(index)) {
+      _specControllers[index] = TextEditingController(text: initialText);
+    }
+    return _specControllers[index]!;
+  }
 
   Future<void> _pickImage() async {
     if (_isPickingImage) return; // Evitar múltiples llamadas
@@ -103,27 +119,71 @@ class _PaymentPageState extends State<PaymentPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ...cartProvider.cartItems.map((item) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${item.name} x${item.quantity}',
-                                style: const TextStyle(
-                                  color: Color(0xFF6D4C41),
+                    ...cartProvider.cartItems.map((item) {
+                      final index = cartProvider.cartItems.indexOf(item);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${item.name} x${item.quantity}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF6D4C41),
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                '\$${(item.price * item.quantity).toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  color: Color(0xFF5D4037),
-                                  fontWeight: FontWeight.w600,
+                                Text(
+                                  '\$${(item.price * item.quantity).toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF5D4037),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.note_add,
+                                    color: Color(0xFF8D6E63), size: 16),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  'Especificaciones',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF5D4037),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            TextField(
+                              maxLines: 2,
+                              decoration: InputDecoration(
+                                hintText: 'Ej: Sin azúcar, extra queso, etc.',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
                               ),
-                            ],
-                          ),
-                        )),
+                              onChanged: (value) {
+                                cartProvider.updateSpecifications(index, value);
+                              },
+                              controller:
+                                  _getController(index, item.specifications),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                     const Divider(color: Color(0xFF8D6E63)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -622,6 +682,7 @@ class _PaymentPageState extends State<PaymentPage> {
         return {
           'id_producto': item.id,
           'cantidad': item.quantity,
+          'especificaciones': item.specifications,
         };
       }).toList();
 
