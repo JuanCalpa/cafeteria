@@ -9,7 +9,7 @@ class ApiService {
   // static const String baseUrl = 'http://10.0.2.2:3000'; // Para emulador Android
   static String baseUrl =
       'http://192.168.100.80:3000'; // Para dispositivos reales Android (configurable)
-  // static const String baseUrl = 'https://tu-backend.railway.app'; // Para producción
+  //static String baseUrl = 'https://tu-backend.railway.app'; // Para producción - REEMPLAZA con tu URL real de Railway
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;

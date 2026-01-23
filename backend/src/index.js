@@ -110,7 +110,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('╚══════════════════════════════════════════╝');
   console.log('');
   console.log(`✅ Backend API: http://localhost:${PORT}`);
-  console.log(`🌍 Red local:   http://10.0.2.2:${PORT} (Emulador Android)`);
+  console.log(`🌍 Red local:   http://10.0.2.2:${PORT} `);
   console.log('');
   console.log('📦 Sirviendo frontend desde: panelAdmin/frontend/dist');
   console.log('');
